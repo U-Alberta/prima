@@ -22,12 +22,12 @@ def count_item(path):
 	return n
 
 def count_file(path):
-  n = 0
-  doc = open(path, "r")
-  for line in doc:
-    n+=count_line(line)
-  doc.close()
-  return n
+	n = 0
+	doc = open(path, "r")
+	for line in doc:
+		n+=count_line(line)
+	doc.close()
+	return n
 
 # When line is called, tokenize, remove symbols and count the words.
 def count_line(line):
@@ -60,11 +60,21 @@ def name_outfile(path):
 		os.makedirs("processed/word_count")
 	return outfile
 
+def insert_to_db(command, output):
+	line = (command, output,)
+	conn = sqlite3.connect("processed/hist.db")
+	c = conn.cursor()
+	c.execute("INSERT INTO History VALUES(?,?)", line)
+	conn.commit()
+	conn.close()
+	return 1
+
 def word_count():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
 		return -1
-	path = sys.argv[1]
+	command = sys.argv[1]
+	path = command
 	depth = len(path.split("/"))
 	# Depending on the path given by the user (to a collection, item, etc), 
 	# compute n.
@@ -73,21 +83,21 @@ def word_count():
 		try:
 			n = count_collection(path)
 		except:
-			print("Error counting words in collection {}".format(path))
+			print("Error counting words in collection {}".format(command))
 			return -1
 	elif (depth == 2) or (depth == 3 and path.split("/")[-1] == ""):
 		if depth == 3:	path = path.strip("/")
 		try:
 			n = count_item(path)
 		except:
-			print("Error counting words in item {}".format(path))
+			print("Error counting words in item {}".format(command))
 			return -1
 	elif (depth == 3) or (depth == 4 and path.split("/")[-1] == ""):
 		if depth == 4:	path = path.strip("/")
 		try:
 			n = count_file(path)
 		except:
-			print("Error counting words in file {}".format(path))
+			print("Error counting words in file {}".format(command))
 			return -1
 	elif (depth == 4) or (depth == 5 and path.split("/")[-1] == ""):
 		if depth == 5:	path = path.strip("/")
@@ -110,14 +120,20 @@ def word_count():
 	# Once n has been sucessfully computed, create a file in the appropriate 
 	# place (name_outfile) and save the value of n in there.
 	try:
-		n = str(n)
+		output = str(n)
+		command = "word_count "+sys.argv[1]
 		outfilename = name_outfile(path)
 		outfile = open(outfilename, "w")
-		outfile.write(n)
+		outfile.write(output)
 		outfile.close()
-		return n
 	except:
 		print("Error saving result to file")
 		return -1
+	try:
+		insert_to_db(command, output)
+	except:
+		print("Error saving to history database")
+		return -1
+	return 1
 
 word_count()
