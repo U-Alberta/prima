@@ -18,7 +18,16 @@ Personal Research Management for the IA
 
 ## Tools
 The tools available are:
-* word_count.sh: given a directory depth starting from source (counts the entire collection) and going down to /source/item/file/lineno this will count all words in the input.
-* tfidf.sh: TODO
-* lsi.sh: TODO
-* lda.sh: TODO
+
+### word_count.sh
+Given a directory depth starting from source (counts the entire collection) and going down to /source/item/file/lineno this will count all words in the input. For example, running 
+  >
+    $ ~/path/to/prima/tools/word_count.sh source/item/filename.txt
+will create a file in your collection directory/processed/word_count called source_item_filename.txt with the word count of that document
+
+### tfidf.sh: 
+Taking no input, this calculates the tf, df, and idf of all the documents in source/ folder. These values are then saved in you collection directory/processed/tfidf as tf.txt (holding tab-separated terms and frequencies), df.txt (tab-separated terms document pairs and their frequencies), and idf.txt (tab-separated terms document pairs and their inverse document frequencies).
+
+idf was calculated using log(N/df) where N is the size of documents in the corpus (corpus here is defined as the whole collection) and df is the document frequency of a term in a document.
+### lsi.sh: TODO
+### lda.sh: TODO
