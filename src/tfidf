@@ -1,0 +1,119 @@
+#!/usr/bin/python
+import datetime
+import linecache
+import math
+import nltk.tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
+import os
+import sqlite3
+import sys
+
+TFIDFFOLDER = "processed/tfidf"
+TFFILE = "processed/tfidf/tf.txt"
+DFFILE = "processed/tfidf/df.txt"
+IDFFILE = "processed/tfidf/idf.txt"
+
+def tfidf():
+	if len(sys.argv) != 1:
+		print("Invalid number of command line arguments")
+		return -1
+	try:
+		tf, df, tokens, n = get_tf_df()
+	except:
+		print("Error getting term and document frequency")
+		return -1
+	try:
+		idf = calc_idf(n, df)
+	except:
+		print("Error calculating idf")
+		return -1
+	try:
+		write_to_files(tokens, tf, df, idf)
+	except:
+		print("Error writing vlues to files")
+		return -1
+	try:
+		command = "tfidf"
+		insert_to_db(command, "True")
+	except:
+		print("Error saving to history database")
+		return -1
+	return 1
+
+def get_tf_df():
+	tf = {}
+	df = {}
+	tokens = []
+	n = 0
+	punc = {".":0, ",":0, ";":0, ":":0, "!":0, "?":0, "-":0, "_":0, "'":0, \
+  	'"':0, "'s":0}
+	for item in os.listdir("source"):
+		for file in os.listdir("source/"+item):
+			n+=1
+			docid = file.split(".")[0]
+			doc = open("source/"+item+"/"+file)
+			for line in doc:
+			  sentence_list = sent_tokenize(line.decode("utf-8"))
+			  for sentence in sentence_list:
+			    for term in word_tokenize(sentence):
+			      if term not in punc:
+			      	try:
+			      		term = str(term.lower())
+			      	except:
+			      		pass
+			      	if term not in tf.keys():
+			      		tokens.append(term)
+			      		tf[term] = 0
+			      		df[term] = {}
+			      	if docid not in df[term].keys():
+			      		df[term][docid] = 0
+			      	df[term][docid]+=1
+			      	tf[term]+=1
+			doc.close()
+	tokens.sort()
+	return tf, df, tokens, n
+
+def calc_idf(n, df):
+	corpus_idf = {}
+	for t in df.keys():
+		for d in df[t].keys():
+			frequency_t_d = df[t][d]
+			idf = math.log10(float(n)/frequency_t_d)
+			if t not in corpus_idf.keys():
+				corpus_idf[t] = {}
+			corpus_idf[t][d] = idf
+	return corpus_idf
+
+def write_to_files(tokens, tf, df, idf):
+	if not os.path.exists(TFIDFFOLDER):
+		os.makedirs(TFIDFFOLDER)
+	tf_file = open(TFFILE, "w")
+	df_file = open(DFFILE, "w")
+	idf_file = open(IDFFILE, "w")
+	for t in tokens:
+		value = str(tf[t])
+		tf_file.write(t+":\t"+value)
+		tf_file.write("\n")
+		for doc in df[t].keys():
+			value = str(df[t][doc])
+			df_file.write(t+", "+doc+":\t"+value)
+			df_file.write("\n")
+			value = str(idf[t][doc])
+			idf_file.write(t+", "+doc+":\t"+value)
+			idf_file.write("\n")
+	tf_file.close()
+	df_file.close()
+	idf_file.close()
+	return 1
+
+def insert_to_db(command, output):
+	time = datetime.datetime.now()
+	line = (command, output, time,)
+	conn = sqlite3.connect("processed/hist.db")
+	c = conn.cursor()
+	c.execute("INSERT INTO History VALUES(?,?,?)", line)
+	conn.commit()
+	conn.close()
+	return 1
+
+tfidf()
