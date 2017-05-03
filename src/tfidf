@@ -40,6 +40,10 @@ def tfidf():
 		return -1
 	return 1
 
+# Iterate through all the documents in the collection counting occurances of 
+# terms both in the corpus and in individual documents. Save all the tokens 
+# to the list tokens and sort it alphabetically to use later (note: this is 
+# slow but it makes for prettier output in the documents).
 def get_tf_df():
 	tf = {}
 	df = {}
@@ -73,6 +77,7 @@ def get_tf_df():
 	tokens.sort()
 	return tf, df, tokens, n
 
+# Use the df values to calculate idf for all tokens in each document.
 def calc_idf(n, df):
 	corpus_idf = {}
 	for t in df.keys():
@@ -84,6 +89,8 @@ def calc_idf(n, df):
 			corpus_idf[t][d] = idf
 	return corpus_idf
 
+# Write the tf, df, and idf values of terms and documents to three files in the 
+# processed/tfidf folder.
 def write_to_files(tokens, tf, df, idf):
 	if not os.path.exists(TFIDFFOLDER):
 		os.makedirs(TFIDFFOLDER)
@@ -106,6 +113,7 @@ def write_to_files(tokens, tf, df, idf):
 	idf_file.close()
 	return 1
 
+# Insert the comand used, output, and time run to the history database.
 def insert_to_db(command, output):
 	time = datetime.datetime.now()
 	line = (command, output, time,)
