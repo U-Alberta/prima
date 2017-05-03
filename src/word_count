@@ -1,25 +1,14 @@
 #!/usr/bin/python
-import os
-import sys
 import linecache
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
+import os
+import sqlite3
+import sys
 
-def name_outfile(path):
-	outfile = "word_count_"
-	path = path.split("/")
-	if len(path) > 2: # if there is a filename in the path, strip it of the type identifier
-		outfile+="_".join(path[:2])
-		outfile+="_"+path[2].split(".")[0]
-		if len(path) > 3:
-			outfile+="_"+path[3]
-	else:
-		outfile+="_".join(path)
-	outfile = "processed/word_count/"+outfile
-	if not os.path.exists("processed/word_count/"):
-		os.makedirs("processed/word_count")
-	return outfile
-
+# If the user gave something higher than a line, iterate through objects and 
+# call the next lower function (collection calls item which calls file which 
+# calls line).
 def count_collection(path):
 	n = 0
 	for doc_path in os.listdir(path):
@@ -40,8 +29,10 @@ def count_file(path):
   doc.close()
   return n
 
+# When line is called, tokenize, remove symbols and count the words.
 def count_line(line):
-  punc = [".", ",", ";", ":", "!", "?", "-", "_", "'", '"', "'s"]
+  punc = {".":0, ",":0, ";":0, ":":0, "!":0, "?":0, "-":0, "_":0, "'":0, \
+  	'"':0, "'s":0}
   n = 0
   sentence_list = sent_tokenize(line.decode("utf-8"))
   for sentence in sentence_list:
@@ -50,32 +41,83 @@ def count_line(line):
         n+=1
   return n
 
-def main():
+# With the path given, create a unique file name for each line, file, item, 
+# and collection possible. If the directory word_count doesn't exist, create 
+# it so we can add the output file to it later.
+def name_outfile(path):
+	path = path.split("/")
+	clean_path = []
+	for directory in path:
+		directory = directory.split("_")
+		directory = "".join(directory)
+		directory = directory.split(".")[0]
+		if len(clean_path) == 3:
+			directory = "line"+directory
+		clean_path.append(directory)
+	outfile = "_".join(clean_path)
+	outfile = "processed/word_count/"+outfile
+	if not os.path.exists("processed/word_count/"):
+		os.makedirs("processed/word_count")
+	return outfile
+
+def word_count():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
 		return -1
 	path = sys.argv[1]
 	depth = len(path.split("/"))
-	if depth == 1:
-		n = count_collection(path)
-	elif depth == 2:
-		n = count_item(path)
-	elif depth == 3:
-		n = count_file(path)
-	elif depth == 4:
-		lineno = int(path.split("/")[-1])
-		tmp = path.split("/")[:-1]
-		newpath = "/".join(tmp)
-		line = linecache.getline(newpath, lineno)
-		n = count_line(line)
+	# Depending on the path given by the user (to a collection, item, etc), 
+	# compute n.
+	if (depth == 1) or (depth == 2 and path.split("/")[-1] == ""):
+		if depth == 2:	path = path.strip("/")
+		try:
+			n = count_collection(path)
+		except:
+			print("Error counting words in collection {}".format(path))
+			return -1
+	elif (depth == 2) or (depth == 3 and path.split("/")[-1] == ""):
+		if depth == 3:	path = path.strip("/")
+		try:
+			n = count_item(path)
+		except:
+			print("Error counting words in item {}".format(path))
+			return -1
+	elif (depth == 3) or (depth == 4 and path.split("/")[-1] == ""):
+		if depth == 4:	path = path.strip("/")
+		try:
+			n = count_file(path)
+		except:
+			print("Error counting words in file {}".format(path))
+			return -1
+	elif (depth == 4) or (depth == 5 and path.split("/")[-1] == ""):
+		if depth == 5:	path = path.strip("/")
+		try:
+			lineno = int(path.split("/")[-1])
+			tmp = path.split("/")[:-1]
+			newpath = "/".join(tmp)
+			line = linecache.getline(newpath, lineno)
+		except:
+			print("Invalid path given")
+			return -1
+		try:
+			n = count_line(line)
+		except:
+			print("Error counting words in line {} of {}".format(lineno, newpath))
+			return -1
 	else:
-		print("Invalid word count depth")
+		print("Invalid path depth")
 		return -1
-	n = str(n)
-	outfilename = name_outfile(path)
-	outfile = open(outfilename, "w")
-	outfile.write(n)
-	outfile.close()
-	return n
+	# Once n has been sucessfully computed, create a file in the appropriate 
+	# place (name_outfile) and save the value of n in there.
+	try:
+		n = str(n)
+		outfilename = name_outfile(path)
+		outfile = open(outfilename, "w")
+		outfile.write(n)
+		outfile.close()
+		return n
+	except:
+		print("Error saving result to file")
+		return -1
 
-main()
+word_count()
