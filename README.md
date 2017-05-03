@@ -8,11 +8,11 @@ Personal Research Management for the IA
 4. Once inside the directory for a collection, initialize the files by running 
   >
     ~/path/to/prima/tools/init.sh
-5. To download a collection, run the following where collection_name is a valid id for a collection in archive.org
+5. To download a collection, run the following where **collection_name** is a valid id for a collection in archive.org
   >
     ~/path/to/prima/tools/fetch_collection.sh collection_name 
 
-6. After completeing steps 1-5, run the following to get stats on your collection where tool is one of the options below
+6. After completeing steps 1-5, run the following to get stats on your collection where **tool** is one of the options below
   >
     ~/path/to/prima/tools/tool 
 
