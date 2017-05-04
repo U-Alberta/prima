@@ -114,7 +114,7 @@ def count_line(line):
 		"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
 		">":0, "/":0, "?":0, "'d":0, "'ll":0, "'re":0, "'s":0, "'ve":0}
 	n = 0
-	sentence_list = sent_tokenize(line.decode("utf-8"))
+	sentence_list = sent_tokenize(line)
 	for sentence in sentence_list:
 		for term in word_tokenize(sentence):
 			if term[0] not in punc.keys():
