@@ -1,0 +1,16 @@
+#!/usr/bin/python
+import sys
+def main():
+	path = sys.argv[1]
+	infile = open(path, "r")
+	for line in infile:
+		terms = line.split(" ")
+	file = open("test.txt", "w")
+	print(terms)
+	for term in terms:
+		inword = unicode(term, "utf8")
+		outword = inword.encode("utf8", "replace")
+		file.write(outword+"\n")
+	file.close()
+
+main()

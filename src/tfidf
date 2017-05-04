@@ -12,6 +12,7 @@ TFIDFFOLDER = "processed/tfidf"
 TFFILE = "processed/tfidf/tf.txt"
 DFFILE = "processed/tfidf/df.txt"
 IDFFILE = "processed/tfidf/idf.txt"
+DBFOLDER = "processed/hist.db"
 
 def tfidf():
 	if len(sys.argv) != 1:
@@ -30,11 +31,10 @@ def tfidf():
 	try:
 		write_to_files(tokens, tf, df, idf)
 	except:
-		print("Error writing vlues to files")
+		print("Error writing values to files")
 		return -1
 	try:
-		command = "tfidf"
-		insert_to_db(command, "True")
+		insert_to_db()
 	except:
 		print("Error saving to history database")
 		return -1
@@ -49,20 +49,22 @@ def get_tf_df():
 	df = {}
 	tokens = []
 	n = 0
-	punc = {".":0, ",":0, ";":0, ":":0, "!":0, "?":0, "-":0, "_":0, "'":0, \
-  	'"':0, "'s":0}
+	punc = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
+		"*":0, "(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, \
+		"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
+		">":0, "/":0, "?":0, "'d":0, "'ll":0, "'re":0, "'s":0, "'ve":0}
 	for item in os.listdir("source"):
 		for file in os.listdir("source/"+item):
 			n+=1
 			docid = file.split(".")[0]
 			doc = open("source/"+item+"/"+file)
 			for line in doc:
-			  sentence_list = sent_tokenize(line.decode("utf-8"))
+			  sentence_list = sent_tokenize(line)
 			  for sentence in sentence_list:
 			    for term in word_tokenize(sentence):
-			      if term not in punc:
+			      if term[0] not in punc:
 			      	try:
-			      		term = str(term.lower())
+			      		term = term.lower()
 			      	except:
 			      		pass
 			      	if term not in tf.keys():
@@ -70,8 +72,9 @@ def get_tf_df():
 			      		tf[term] = 0
 			      		df[term] = {}
 			      	if docid not in df[term].keys():
-			      		df[term][docid] = 0
-			      	df[term][docid]+=1
+			      		clean_item = "".join(item.split("_"))
+			      		df[term][clean_item+"_"+docid] = 0
+			      	df[term][clean_item+"_"+docid]+=1
 			      	tf[term]+=1
 			doc.close()
 	tokens.sort()
@@ -92,11 +95,15 @@ def calc_idf(n, df):
 # Write the tf, df, and idf values of terms and documents to three files in the 
 # processed/tfidf folder.
 def write_to_files(tokens, tf, df, idf):
+	insert_errors = 0
 	if not os.path.exists(TFIDFFOLDER):
 		os.makedirs(TFIDFFOLDER)
 	tf_file = open(TFFILE, "w")
+	tf_file.write("term\tfrequency")
 	df_file = open(DFFILE, "w")
+	df_file.write("term, document:\tfrequency")
 	idf_file = open(IDFFILE, "w")
+	df_file.write("term, document:\tinverse document frequency")
 	for t in tokens:
 		value = str(tf[t])
 		tf_file.write(t+":\t"+value)
@@ -114,12 +121,12 @@ def write_to_files(tokens, tf, df, idf):
 	return 1
 
 # Insert the comand used, output, and time run to the history database.
-def insert_to_db(command, output):
+def insert_to_db():
 	time = datetime.datetime.now()
-	line = (command, output, time,)
-	conn = sqlite3.connect("processed/hist.db")
+	line = ("tfidf", "", "True", time,)
+	conn = sqlite3.connect(DBFOLDER)
 	c = conn.cursor()
-	c.execute("INSERT INTO History VALUES(?,?,?)", line)
+	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
 	conn.commit()
 	conn.close()
 	return 1
