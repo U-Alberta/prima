@@ -55,27 +55,31 @@ def get_tf_df():
 		">":0, "/":0, "?":0, "'d":0, "'ll":0, "'re":0, "'s":0, "'ve":0}
 	for item in os.listdir("source"):
 		for file in os.listdir("source/"+item):
-			n+=1
 			docid = file.split(".")[0]
-			doc = open("source/"+item+"/"+file)
-			for line in doc:
-				sentence_list = sent_tokenize(line)
-				for sentence in sentence_list:
-					for term in word_tokenize(sentence):
-						if term[0] not in punc:
-							try:
-								term = term.lower()
-							except:
-								pass
-							if term not in tf.keys():
-								tokens.append(term)
-								tf[term] = 0
-								df[term] = {}
-							if docid not in df[term].keys():
-								clean_item = "".join(item.split("_"))
-								df[term][clean_item+"_"+docid] = 0
-							df[term][clean_item+"_"+docid]+=1
-							tf[term]+=1
+			try:
+				doc = open("source/"+item+"/"+file)
+				n+=1
+				for line in doc:
+					sentence_list = sent_tokenize(line)
+					for sentence in sentence_list:
+						for term in word_tokenize(sentence):
+							if term[0] not in punc:
+								try:
+									term = term.lower()
+								except:
+									pass
+								if term not in tf.keys():
+									tokens.append(term)
+									tf[term] = 0
+									df[term] = {}
+								if docid not in df[term].keys():
+									clean_item = "".join(item.split("_"))
+									df[term][clean_item+"_"+docid] = 0
+								df[term][clean_item+"_"+docid]+=1
+								tf[term]+=1
+			except:
+				print("Problem reading document {}/{}, moving on".format(item, file))
+				pass
 			doc.close()
 	tokens.sort()
 	return tf, df, tokens, n

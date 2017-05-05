@@ -114,11 +114,14 @@ def count_line(line):
 		"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
 		">":0, "/":0, "?":0}
 	n = 0
-	sentence_list = sent_tokenize(line)
-	for sentence in sentence_list:
-		for term in word_tokenize(sentence):
-			if term[0] not in punc.keys():
-				n+=1
+	try:
+		sentence_list = sent_tokenize(line)
+		for sentence in sentence_list:
+			for term in word_tokenize(sentence):
+				if term[0] not in punc.keys():
+					n+=1
+	except:
+		print("Error counting words in line {}, moving on".format(line))
 	return n
 
 # With the path given, create a unique file name for each potential input 
