@@ -39,8 +39,8 @@ def word_count():
 		return -1
 	return 1
 
-# This determins whether the user wanted collection, item, file, or line-level 
-# word count by checking how many /s were used in the input path.
+# This determines whether the user wanted collection, item, file, or line-level 
+# word count by checking how many '/'s were used in the input path.
 def get_n(depth, path):
 	if (depth == 1) or (depth == 2 and path.split("/")[-1] == ""):
 		if depth == 2:	path = path.strip("/")
@@ -112,7 +112,7 @@ def count_line(line):
 	punc = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
 		"*":0, "(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, \
 		"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
-		">":0, "/":0, "?":0, "'d":0, "'ll":0, "'re":0, "'s":0, "'ve":0}
+		">":0, "/":0, "?":0}
 	n = 0
 	sentence_list = sent_tokenize(line)
 	for sentence in sentence_list:
@@ -147,7 +147,7 @@ def write_to_file(output, path):
 	outfile.write(output)
 	outfile.close()
 
-# Insert the comand used, output, and time run to the history database.
+# Insert the command used, output, and time run to the history database.
 def insert_to_db(param, output):
 	time = datetime.datetime.now()
 	line = ("word_count", param, output, time,)

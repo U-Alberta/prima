@@ -59,23 +59,23 @@ def get_tf_df():
 			docid = file.split(".")[0]
 			doc = open("source/"+item+"/"+file)
 			for line in doc:
-			  sentence_list = sent_tokenize(line)
-			  for sentence in sentence_list:
-			    for term in word_tokenize(sentence):
-			      if term[0] not in punc:
-			      	try:
-			      		term = term.lower()
-			      	except:
-			      		pass
-			      	if term not in tf.keys():
-			      		tokens.append(term)
-			      		tf[term] = 0
-			      		df[term] = {}
-			      	if docid not in df[term].keys():
-			      		clean_item = "".join(item.split("_"))
-			      		df[term][clean_item+"_"+docid] = 0
-			      	df[term][clean_item+"_"+docid]+=1
-			      	tf[term]+=1
+				sentence_list = sent_tokenize(line)
+				for sentence in sentence_list:
+					for term in word_tokenize(sentence):
+						if term[0] not in punc:
+							try:
+								term = term.lower()
+							except:
+								pass
+							if term not in tf.keys():
+								tokens.append(term)
+								tf[term] = 0
+								df[term] = {}
+							if docid not in df[term].keys():
+								clean_item = "".join(item.split("_"))
+								df[term][clean_item+"_"+docid] = 0
+							df[term][clean_item+"_"+docid]+=1
+							tf[term]+=1
 			doc.close()
 	tokens.sort()
 	return tf, df, tokens, n
@@ -120,7 +120,7 @@ def write_to_files(tokens, tf, df, idf):
 	idf_file.close()
 	return 1
 
-# Insert the comand used, output, and time run to the history database.
+# Insert the command used, output, and time run to the history database.
 def insert_to_db():
 	time = datetime.datetime.now()
 	line = ("tfidf", "", "True", time,)

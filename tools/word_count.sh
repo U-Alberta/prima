@@ -1,2 +1,2 @@
 #!/bin/sh
-word_count $1
+word_count.py $1
