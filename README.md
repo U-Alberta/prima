@@ -30,9 +30,9 @@ will create a file in your collection directory/processed/word_count called sour
 will create a file in your collection directory/processed/word_count called source.txt with the word count of all documents in the source collection.
 
 ### tfidf.sh: 
-Taking no input, this calculates the tf, df, and idf of all the documents in the collection in the source/ folder. These values are then saved in your collection directory/processed/tfidf as tf.txt (holding tab-separated terms and frequencies), df.txt (tab-separated term document pairs and their document frequencies), and idf.txt (tab-separated term document pairs and their inverse document frequencies).
+Taking no input, this calculates the tf, df, and tfidf of all the documents in the collection in the source/ folder. These values are then saved in your collection directory/processed/tfidf as df.txt (holding tab-separated terms and their document frequencies), tf.txt (tab-separated term document pairs and their term frequencies), and tfidf.txt (tab-separated term document pairs and their tf-idf values). This also creates a SQLite database in /processed/inverted_index.db which is used for later calculations but can be accessed. The database contains two tables; one holding tokens, their id's and document frequency and another holding token postings in documents as well as tf-idf values.
 
-idf was calculated using log(N/df) where N is the size of documents in the corpus (corpus here is defined as the whole collection and N is the total number of documents read) and df is the document frequency of a term in a document.
+idf was calculated using log(N/df) where N is the size of documents in the corpus (corpus here is defined as the whole collection and N is the total number of documents read), tf is the term frequency of a term in a document, and df is the document frequency of a term in the corpus.
 
 ### lsi.sh: 
 Taking no input, this builds a low-rank approximation of a term document matrix for all the documents in the collection. This matrix is then saved in your collection  directory/processed/lsi/lsi.csv. (TODO: take k as input? like the user can specify what size matrix they want?)
