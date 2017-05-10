@@ -34,6 +34,12 @@ Taking no input, this calculates the tf, df, and tfidf of all the documents in t
 
 idf was calculated using log(N/df) where N is the size of documents in the corpus (corpus here is defined as the whole collection and N is the total number of documents read), tf is the term frequency of a term in a document, and df is the document frequency of a term in the corpus.
 
+### k_means_clusterer.sh:
+Taking the number of clusters, k, as input, this clusters the documents in the corpus into k groups according to the k means algorithm. Vectors are weighted using lnc.ltc according to SMART notation. For example, running
+  >
+    $ ~/path/to/prima/tools/k_means_clusterer.sh 3
+will classify the documents within the source/ folder into 3 clusters.
+
 ### lsi.sh: 
 Taking no input, this builds a low-rank approximation of a term document matrix for all the documents in the collection. This matrix is then saved in your collection  directory/processed/lsi/lsi.csv. (TODO: take k as input? like the user can specify what size matrix they want?)
 
