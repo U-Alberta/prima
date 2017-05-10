@@ -17,16 +17,17 @@ LSIFOLDER = "processed/lsi/"
 DBFOLDER = "processed/hist.db"
 
 def lsi():
-	if len(sys.argv) != 1:
+	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
 		return -1
+	k = int(sys.argv[1])
 	try:
 		tokens, docs = get_toks_docs()
 	except:
 		print("Error getting tokens")
 		return -1
 	try:
-		ct = get_ct(tokens)
+		ct = get_ct(['ship','boat','ocean','voyage','trip'])
 	except:
 		print("Error getting df matrix")
 		return -1
@@ -35,14 +36,14 @@ def lsi():
 	except:
 		print("Error transposing matrix ct")
 		return -1
-	try:
-		ck, k_tokens = get_k_svd(c, ct, tokens)
-	except:
-		print("Error generating svd matrices")
-		return -1
-	#print(k_tokens)
-	df = pd.DataFrame(ck, index=tokens, columns=docs)
+	#try:
+	ck, k_tokens = get_k_svd(c, ct, tokens, k)
+	#except:
+		#print("Error generating svd matrices")
+		#return -1
+	#df = pd.DataFrame(ck, index=tokens, columns=docs)
 	#print(df)
+	"""	
 	try:
 		write_to_file(df)
 	except:
@@ -53,6 +54,7 @@ def lsi():
 	except:
 		print("Error writing to database")
 		return -1
+	"""
 	return 1
 
 # Iterate through all the documents in the collection saving all the tokens in 
@@ -65,7 +67,7 @@ def get_toks_docs():
 	toks = []
 	docs = []
 	for item in os.listdir("source"):
-		for file in os.listdir("source/"+item):
+		for file in sorted(os.listdir("source/"+item)):
 			docname = "source/"+item+"/"+file
 			doc = open(docname)
 			docs.append(docname)
@@ -95,7 +97,7 @@ def get_ct(tokens):
 		">":0, "/":0, "?":0}
 	i = 0
 	for item in os.listdir("source"):
-		for file in os.listdir("source/"+item):
+		for file in sorted(os.listdir("source/"+item)):
 			docname = "source/"+item+"/"+file
 			doc = open(docname)
 			row = [0]*len(tokens)
@@ -117,28 +119,49 @@ def get_ct(tokens):
 
 # Here k=2
 # TODO: find a way to set a global value for k and use that
-def get_k_svd(c, ct, tokens):
+# TODO: # u still has some flipped signs?
+# TODO: v
+def get_k_svd(c, ct, tokens, k):
 	u_prime = np.matmul(c, ct)
 	eigen_u = la.eig(u_prime)
-	u_values = eigen_u[0]
-	u_double_prime = eigen_u[1]
-	sigma_prime = []
-	i = 0
-	for eigenvalue in u_values:
+	u_values, u = sort_eigen_values(eigen_u)
+	sigma = []
+	for i in range(0, k):
+		eigenvalue = u_values[i]
 		row = [0]*len(u_values)
 		eigenvalue = round(eigenvalue, 5)
-		sing_val = math.sqrt(eigenvalue)
-		row[i] = sing_val
-		sigma_prime.append(row)
-		i+=1
-	u, sigma, tokens = max_rows(u_double_prime, sigma_prime, tokens)
+		singular_val = math.sqrt(eigenvalue)
+		row[i] = singular_val
+		sigma.append(row)
+	for i in range(k, len(u_values)):
+		row = [0]
+	print(sigma)
+	"""
+	sigma, tokens = max_rows(sigma_prime, tokens)
 	v_prime = np.matmul(ct, c)
 	eigen_v = la.eig(v_prime)
-	v = -eigen_v[1]
+	v = eigen_v[1]
 	vt = transpose(v)
 	ck = np.matmul(u, sigma)
 	ck = np.matmul(ck, vt)
-	return ck, tokens
+	"""
+	return 0,0
+
+def sort_eigen_values(eigen_u):
+	values = eigen_u[0]
+	vectors = transpose(eigen_u[1])
+	sorted_eigen_u = []
+	for _ in range(0, len(values)):
+		values[_] = math.sqrt(values[_])
+		sorted_eigen_u.append((values[_], vectors[_]))
+	sorted_eigen_u.sort(key=lambda tup: tup[0], reverse=True)
+	values = []
+	vectors = []
+	for _ in range(0, len(sorted_eigen_u)):
+		values.append(sorted_eigen_u[_][0])
+		vectors.append(sorted_eigen_u[_][1])
+	vectors = transpose(vectors)
+	return values, vectors
 
 def transpose(matrix):
 	matrix_t = []
@@ -149,7 +172,8 @@ def transpose(matrix):
 		matrix_t.append(column)
 	return matrix_t
 
-def max_rows(u_double_prime, sigma_prime, tokens):
+# i can do this differently by making a list of the sums and picking the top 2
+def max_rows(sigma_prime, tokens):
 	new_tokens = []
 	max1 = (-INFINITY, -1)
 	max2 = (-INFINITY, -1)
@@ -161,20 +185,21 @@ def max_rows(u_double_prime, sigma_prime, tokens):
 		elif sum(row) > max2[0]:
 			max2 = (sum(row), i)
 	max_indices = [max1[1], max2[1]]
-	u = []
 	sigma = []
-	for _ in range(0, len(sigma_prime)):
+	for i in range(0, len(sigma_prime)):
 		max1 = min(max_indices)
-		u1_val = round(u_double_prime[_][max1], 5)
 		max2 = max(max_indices)
-		u2_val = round(u_double_prime[_][max2], 5)
-		u.append([u1_val, u2_val])
-		if _ in max_indices:
-			new_tokens.append(tokens[_])
-			sigma1_val = round(sigma_prime[_][max1], 5)
-			sigma2_val = round(sigma_prime[_][max2], 5)
-			sigma.append([sigma1_val, sigma2_val])
-	return u, sigma, new_tokens
+		if i in max_indices:
+			new_tokens.append(tokens[i])
+			sigma1_val = round(sigma_prime[i][max1], 5)
+			sigma2_val = round(sigma_prime[i][max2], 5)
+			new_row = [sigma1_val, sigma2_val]
+			for j in range(0, len(sigma_prime)-2):
+				new_row.append(0)
+			sigma.append(new_row)
+		else:
+			sigma.append([0]*len(sigma_prime))
+	return sigma, new_tokens
 
 # Write the matrix of term and document frequency to a csv file in the 
 # processed/lsi folder.
