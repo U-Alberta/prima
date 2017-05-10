@@ -5,7 +5,7 @@ Personal Research Management for the IA
 1. Clone this repository to somewhere in your file system
 2. Setup a path to /prima/src and run
   >
-    $ chmod u+x ~/path/to/prima/tools/*.sh
+    $ chmod u+x ~/path/to/prima/src/*.py
 3. Create a directory for your different collections to be save in and a new directory within this for each collection to be downloaded
 4. Once inside the directory for a collection, initialize the files by running 
   >
