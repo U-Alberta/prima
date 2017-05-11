@@ -11,12 +11,12 @@ import pandas as pd
 import sqlite3
 import sys
 
-DBFOLDER = "processed/hist.db"
-LSIFOLDER = "processed/lsi/"
 PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
 	"*":0, "(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, \
 	"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
 	">":0, "/":0, "?":0}
+LSIFOLDER = "processed/lsi/"
+HISTDB = "processed/hist.db"
 
 #TODO: queries
 def lsi():
@@ -157,7 +157,7 @@ def write_to_file(ck, docs):
 def insert_to_db(k):
 	time = datetime.datetime.now()
 	line = ("lsi", k, "True", time,)
-	conn = sqlite3.connect(DBFOLDER)
+	conn = sqlite3.connect(HISTDB)
 	c = conn.cursor()
 	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
 	conn.commit()

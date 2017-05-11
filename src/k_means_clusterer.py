@@ -6,8 +6,7 @@ import random
 import sqlite3
 import sys
 
-KMEANSFOLDER = "processed/kmeans"
-KMEANSFILE = "processed/kmeans/kmeans.txt"
+KMEANSFOLDER = "processed/kmeans/"
 HISTDB = "processed/hist.db"
 IIDB = "processed/inverted_index.db"
 
@@ -240,8 +239,7 @@ def update_centroids(cluster):
 
 def write_to_file(k_clusters):
 	if not os.path.exists(KMEANSFOLDER):
-		os.makedirs(KMEANSFOLDER)
-	kmeans_file = open(KMEANSFILE, "w")
+		os.makedirs(KMEANSFOLDER+"kmeans.txt", "w")
 	for cluster in k_clusters.keys():
 		output = str(cluster)+":\t"
 		for file in k_clusters[cluster]:
