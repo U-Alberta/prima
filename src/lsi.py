@@ -21,6 +21,8 @@ PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
 	"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
 	">":0, "/":0, "?":0}
 
+#TODO: queries
+#TODO: sometimes u and v have negative eigenvectors?
 def lsi():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
@@ -28,7 +30,7 @@ def lsi():
 	k = int(sys.argv[1])
 	try:
 		tokens, docs = get_toks_docs()
-		tokens = ['ship','boat','ocean','voyage','trip']
+		#tokens = ['ship','boat','ocean','voyage','trip']
 	except:
 		print("Error getting tokens")
 		return -1
@@ -41,19 +43,17 @@ def lsi():
 		ck = get_ck(ct, k)
 	except:
 		print("Error getting c{} matrix".format(k))
-		return -1
-	"""	
+		return -1	
 	try:
-		write_to_file(ck, tokens, docs)
+		write_to_file(ck, docs)
 	except:
 		print("Error writing to file")
 		return -1
 	try:
-		insert_to_db()
+		insert_to_db(k)
 	except:
 		print("Error writing to database")
 		return -1
-	"""
 	return 1
 
 # Iterate through all the documents in the collection saving all the tokens in 
@@ -108,50 +108,47 @@ def get_ct(tokens):
 			doc.close()
 	return np.matrix(ct)
 
-#
+# Using the linear algebra python library, calculatae the svd, adjust it to 
+# the dimensions of k, and produce a new matrix ck as output
 def get_ck(ct, k):
 	c = ct.T
-	u, s, vt = la.svd(c)
+	u_prime, s, vt = la.svd(c)
 	m, n = c.shape
-	width = min(m, n)
-	max_dim = max(m, n)
-	sigma = la.diagsvd(s, m, n)
-	sigma = get_k_sigma(sigma, k, width)
-	vt = vt[:width]
-	ck = np.multiply(u, sigma)
-	for row in ck: print row
-	ck = np.asmatrix(ck)
-	vt = np.asmatrix(vt)
+	sigma_prime = la.diagsvd(s, m, n)
+	sigma, u = get_k_sigma_u(sigma_prime, u_prime, k)
+	vt = vt[:k]
+	vt = np.matrix(vt)
+	ck = u*sigma
+	ck = np.matrix(ck)
+	vt = np.matrix(vt)
 	ck = ck*vt
 	return ck
 
-#
-def get_k_sigma(sigma, k, width):
+# Reduce the dimensions of sigma to kxk and of u to kxm
+def get_k_sigma_u(sigma, u, k):
 	new_sigma = []
-	empty_row = []
-	for _ in range(0, width):
-		empty_row.append(float(0))
-	for row in sigma:
-		if k > 0:
-			new_sigma.append(row[:width])
-		else:
-			new_sigma.append(empty_row)
-		k-=1
-	return new_sigma
+	new_u = []
+	for i in range(0, len(u)):
+		if i < k:
+			sigma_row = sigma[i][:k]
+			new_sigma.append(sigma_row)
+		u_row = u[i][:k]
+		new_u.append(u_row)
+	return np.matrix(new_sigma), np.matrix(new_u)
 
-# Write the matrix of term and document frequency to a csv file in the 
-# processed/lsi folder.
-def write_to_file(ck, tokens, docs):
-	df = pd.DataFrame(ck, index=tokens, columns=docs)
+# Write the newly created matrix ck to a csv file in the processed/lsi folder.
+def write_to_file(ck, docs):
+	df = pd.DataFrame(ck, columns=docs)
+	print(df)
 	if not os.path.exists(LSIFOLDER):
 		os.makedirs(LSIFOLDER)
 	df.to_csv(LSIFOLDER+"lsi.csv")
 	return 1
 
 # Insert the command used, output, and time run to the history database.
-def insert_to_db():
+def insert_to_db(k):
 	time = datetime.datetime.now()
-	line = ("lsi", "", "True", time,)
+	line = ("lsi", k, "True", time,)
 	conn = sqlite3.connect(DBFOLDER)
 	c = conn.cursor()
 	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
