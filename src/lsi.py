@@ -11,18 +11,14 @@ import pandas as pd
 import sqlite3
 import sys
 
-INFINITY = 1000000000
 DBFOLDER = "processed/hist.db"
 LSIFOLDER = "processed/lsi/"
-DBFOLDER = "processed/hist.db"
-ROUND = 5
 PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
 	"*":0, "(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, \
 	"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
 	">":0, "/":0, "?":0}
 
 #TODO: queries
-#TODO: sometimes u and v have negative eigenvectors?
 def lsi():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
@@ -30,7 +26,7 @@ def lsi():
 	k = int(sys.argv[1])
 	try:
 		tokens, docs = get_toks_docs()
-		#tokens = ['ship','boat','ocean','voyage','trip']
+		#tokens = ['ship','boat','ocean','voyage','trip'] <= for the book example
 	except:
 		print("Error getting tokens")
 		return -1
@@ -43,7 +39,7 @@ def lsi():
 		ck = get_ck(ct, k)
 	except:
 		print("Error getting c{} matrix".format(k))
-		return -1	
+		return -1
 	try:
 		write_to_file(ck, docs)
 	except:
@@ -108,32 +104,44 @@ def get_ct(tokens):
 			doc.close()
 	return np.matrix(ct)
 
-# Using the linear algebra python library, calculatae the svd, adjust it to 
-# the dimensions of k, and produce a new matrix ck as output
+# Using the linear algebra python library, calculate the svd, adjust it to 
+# the dimensions of k, and produce a new matrix ck as output.
 def get_ck(ct, k):
 	c = ct.T
 	u_prime, s, vt = la.svd(c)
 	m, n = c.shape
-	sigma_prime = la.diagsvd(s, m, n)
+	sigma_prime = la.diagsvd(s, min(m, n), min(m, n))
 	sigma, u = get_k_sigma_u(sigma_prime, u_prime, k)
-	vt = vt[:k]
-	vt = np.matrix(vt)
+	#print("u:")
+	#for _ in u: print _
+	#print("sigma:")
+	#for _ in sigma: print _
 	ck = u*sigma
 	ck = np.matrix(ck)
+	#print("u*sigma:")
+	#for _ in ck: print _
+	vt = vt[:k]
 	vt = np.matrix(vt)
+	#print ("vt:")
+	#for _ in vt: print _
+	#two = sigma*vt
+	#two = np.matrix(two)
+	#print("sigma*vt:")
+	#for _ in two: print _
 	ck = ck*vt
+	ck = np.matrix(ck)
+	#print("ck:")
+	#for _ in ck: print _
 	return ck
 
-# Reduce the dimensions of sigma to kxk and of u to kxm
+# Reduce the dimensions of sigma to kxk and of u to kxm.
 def get_k_sigma_u(sigma, u, k):
 	new_sigma = []
 	new_u = []
 	for i in range(0, len(u)):
+		new_u.append(u[i][:k])
 		if i < k:
-			sigma_row = sigma[i][:k]
-			new_sigma.append(sigma_row)
-		u_row = u[i][:k]
-		new_u.append(u_row)
+			new_sigma.append(sigma[i][:k])
 	return np.matrix(new_sigma), np.matrix(new_u)
 
 # Write the newly created matrix ck to a csv file in the processed/lsi folder.
