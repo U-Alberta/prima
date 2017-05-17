@@ -6,6 +6,7 @@ Personal Research Management for the IA
 2. Setup a path to /prima/src and run the following, replacing ~/path/to with your personal path to the prima repository
   >
     $ chmod u+x ~/path/to/prima/src/*.py
+    $ chmod u+x ~/path/to/prima/tools/*.sh
 3. To create the appropriate directories for your file system run the following commands where **project_name** is the desired file name for a collection to be saved in
   >
     $ ~/path/to/prima/tools/init_workspace.sh
@@ -54,3 +55,8 @@ Taking k as input, this builds a low-rank approximation of a term document matri
 will reduce the term-document matrix c into a k-by-k matrix and save it in lsi.csv.
 
 ### lda.sh: TODO
+
+### min_hash.sh:
+does things
+  >
+    $ ~/path/to/prima/tools/min_hash.sh

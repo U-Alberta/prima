@@ -6,14 +6,15 @@ import random
 import sqlite3
 import sys
 
-KMEANSFOLDER = "processed/kmeans/"
+KMEANSFOLDER = "processed/k_means/"
 HISTDB = "processed/hist.db"
 IIDB = "processed/inverted_index.db"
 
+# TODO: allow to work on specific directories like word_count?
 def k_means_clusterer():
 	if len(sys.argv) != 2:
-		print("Wrong number of command line arguments")
-		print("Usage: ~/k_means_clusterer k")
+		print("Invalid number of command line arguments")
+		print("Usage: ~/k_means_clusterer.sh k")
 		return -1
 	k = sys.argv[1]
 	k = int(k)
@@ -57,14 +58,14 @@ def k_means_clusterer():
 				write_to_file(cluster2)
 				break
 			except:
-				print("Error writing to file")
+				print("Error saving result to file")
 				return -1
 			return 1
 		centroids = update_centroids(cluster2)
 	try:
 		insert_to_db(k, cluster2)
 	except:
-		print("Error inserting to database {}".format(HISTDB))
+		print("Error saving to history database")
 	return 1
 
 def get_N(c):

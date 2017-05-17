@@ -19,9 +19,11 @@ IDFFILE = "processed/tfidf/tfidf.txt"
 HISTDB = "processed/hist.db"
 IIDB = "processed/inverted_index.db"
 
+# TODO: allow to work on specific directories like word_count?
 def tfidf():
 	if len(sys.argv) != 1:
 		print("Invalid number of command line arguments")
+		print("Usage: ~/tfidf.sh")
 		return -1
 	try:
 		corpus_list, n = build_corpus_list()
@@ -41,17 +43,17 @@ def tfidf():
 	try:
 		write_to_files(inverted_index)
 	except:
-		print("Error writing to files")
+		print("Error saving result to files")
 		return -1
 	try:
 		insert_inverted_index(inverted_index, tokens, postings)
 	except:
-		print("Error inserting values to database {}".format(IIDB))
+		print("Error saving to inverted index database {}".format(IIDB))
 		return -1
 	try:
 		insert_to_db()
 	except:
-		print("Error inserting values to database {}".format(HISTDB))
+		print("Error saving to history database {}".format(HISTDB))
 		return -1
 	return 1
 

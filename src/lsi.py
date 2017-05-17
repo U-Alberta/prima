@@ -1,9 +1,5 @@
 #!/usr/bin/python
 import datetime
-import linecache
-import math
-import nltk.tokenize
-from nltk.tokenize import sent_tokenize, word_tokenize
 import numpy as np
 from scipy import linalg as la
 import os
@@ -18,10 +14,12 @@ PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
 LSIFOLDER = "processed/lsi/"
 HISTDB = "processed/hist.db"
 
-#TODO: queries
+# TODO: queries?
+# TODO: allow to work on specific directories like word_count?
 def lsi():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
+		print("Usage: ~/lsi.sh k")
 		return -1
 	k = int(sys.argv[1])
 	try:
@@ -43,12 +41,12 @@ def lsi():
 	try:
 		write_to_file(ck, docs)
 	except:
-		print("Error writing to file")
+		print("Error saving result to file")
 		return -1
 	try:
 		insert_to_db(k)
 	except:
-		print("Error writing to database")
+		print("Error saving to history database")
 		return -1
 	return 1
 
@@ -147,7 +145,6 @@ def get_k_sigma_u(sigma, u, k):
 # Write the newly created matrix ck to a csv file in the processed/lsi folder.
 def write_to_file(ck, docs):
 	df = pd.DataFrame(ck, columns=docs)
-	print(df)
 	if not os.path.exists(LSIFOLDER):
 		os.makedirs(LSIFOLDER)
 	df.to_csv(LSIFOLDER+"lsi.csv")

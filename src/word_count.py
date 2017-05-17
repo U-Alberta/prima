@@ -14,9 +14,11 @@ PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
 WORDCOUNTFOLDER = "processed/word_count/"
 HISTDB = "processed/hist.db"
 
+# TODO: other file types?
 def word_count():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
+		print("Usage: ~/word_count.sh dir[/item/file/line]")
 		return -1
 	param = sys.argv[1]
 	param = param.strip("/")
