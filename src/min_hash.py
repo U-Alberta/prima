@@ -1,24 +1,21 @@
 #!/usr/bin/python
-#from ctypes import *
+import ctypes
 import datetime
-import linecache
-import math
-#from minHash import *
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
-import numpy as np
-from scipy import linalg as la
 import os
-import pandas as pd
 import sqlite3
 import sys
 
 PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
 	"(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, 	"}":0, \
 	"|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0}
-SHINGLES = 3 # Should we let the user specify this? I think we could have 3 as 
-	# a default and if the user wants to change it they can in the arguments.
-SHINGLEDB = "shingles.db"
+"""
+Should we let the user specify this? I think we could have 3 as a default and 
+if the user wants to change it they can in the arguments.
+"""
+SHINGLES = 3
+SHINGLEDB = "processed/shingles.db"
 HISTDB = "processed/hist.db"
 MINHASHFOLDER = "processed/min_hash"
 
@@ -37,8 +34,11 @@ def min_hash():
 	except:
 		print("Error saving shingles to database {}".format(SHINGLEDB))
 		return -1
-	# Do all the expensive hashing in c
-	#print "Result from getHash:", getHash()
+	try:
+		call_c()
+	except:
+		print("Error calling c functions for hashing")
+		return -1
 	try:
 		insert_to_db()
 	except:
@@ -46,7 +46,9 @@ def min_hash():
 		return -1
 	return 1
 
-# Parse through all the documents in the corpus getting k-shingles.
+"""
+Parse through all the documents in the corpus getting k-shingles.
+"""
 def get_shingles():
 	s = []
 	docid = -1
@@ -84,11 +86,17 @@ def get_shingles():
 				print("Error opening document {}".format(docname))
 	return s
 
-# Save the k-shingles to a database to be accessed in the c program
-# TODO: keep this db? probably not i feel like?
+"""
+Save the k-shingles to a database to be accessed in the c program
+"""
+# TODO: keep this db? (right now it's kept)
 def insert_shingles(shingles):
 	conn = sqlite3.connect(SHINGLEDB)
 	c = conn.cursor()
+	c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Shingle'")
+	if c.fetchone() != None:
+		c.execute("DROP TABLE Shingle")
+		conn.commit()
 	c.execute("CREATE TABLE Shingle(docid int, docname text, shingle text)")
 	conn.commit()
 	c.executemany("INSERT INTO Shingle VALUES(?,?,?)", shingles)
@@ -96,7 +104,21 @@ def insert_shingles(shingles):
 	conn.close()
 	return 1
 
-# Insert the command used, output, and time run to the history database.
+"""
+Call the c file to do the expensive functions for hashing
+"""
+def call_c():
+	temp = os.path.abspath(__file__)
+	temp = os.path.realpath(temp)
+	temp = os.path.dirname(temp)
+	path = os.path.join(temp, "minHash.so")
+	testlib = ctypes.CDLL(path)
+	testlib.callMinHash()
+	return 1
+
+"""
+Insert the command used, output, and time run to the history database.
+"""
 def insert_to_db():
 	time = datetime.datetime.now()
 	line = ("min_hash", "", True, time,)

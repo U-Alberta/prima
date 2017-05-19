@@ -23,13 +23,17 @@ def k_means_clusterer():
 		c = conn.cursor()
 	except:
 		print("Error connecting to database {}".format(IIDB))
-	# Do we want to let users specify seeds?
-	#if len(sys.argv) > 3:
-		#seeds = sys.argv[3:]
-		#if len(seeds) != k:
-			#print("k doesn't match number of seeds given")
-			#return -1
-	#else: 
+	"""
+	Do we want to let users specify seeds?
+	"""
+	"""
+	if len(sys.argv) > 3:
+		seeds = sys.argv[3:]
+		if len(seeds) != k:
+			print("k doesn't match number of seeds given")
+			return -1
+	else: 
+	"""
 	try:
 		seeds = gen_seeds(k, c)
 	except:
@@ -80,7 +84,9 @@ def get_tokens(c):
 		tokens.append(row[0])
 	return tokens
 
-# If no seeds are given, this randomly selects k seeds from the database.
+"""
+If no seeds are given, this randomly selects k seeds from the database.
+"""
 def gen_seeds(k, c):
 	seeds = []
 	docs = []
@@ -94,8 +100,10 @@ def gen_seeds(k, c):
 		k-=1
 	return seeds
 
-# Builds an inverted index from the db so we don't have to repeatedly query the 
-# database to get document vectors.
+"""
+Builds an inverted index from the db so we don't have to repeatedly query the 
+database to get document vectors.
+"""
 def build_inverted_index(c):
 	doc_id = []
 	c.execute("SELECT DISTINCT doc_id FROM Posting ORDER BY doc_id")
@@ -121,9 +129,14 @@ def build_inverted_index(c):
 					inverted_index[token] = {"df":df, "postings":{d:tf}}
 	return inverted_index, doc_id
 
-# Generates the vectors (ltc) for the seed documents to make initial centroids.
+"""
+Generates the vectors (ltc) for the seed documents to make initial centroids.
+"""
 def get_seed_vector(seeds, inverted_index, c):
-	#seed vector uses ltc weighting: tf=1+log(tf t,d), df=log(N/df t), normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
+	"""
+	seed vector uses ltc weighting: tf=1+log(tf t,d), df=log(N/df t), 
+	normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
+	"""
 	centroids = []
 	N = get_N(c)
 	tokens = get_tokens(c)
@@ -152,9 +165,14 @@ def get_seed_vector(seeds, inverted_index, c):
 		c_id+=1
 	return centroids
 
-# Calculates a document vector based on lnc values.
+"""
+Calculates a document vector based on lnc values.
+"""
 def get_document_vector(inverted_index, d, c):
-	#doc vector uses lnc: tf=1+log(tf t, d), df=1, normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
+	"""
+	doc vector uses lnc: tf=1+log(tf t, d), df=1, 
+	normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
+	"""
 	tokens = get_tokens(c)
 	d_vector = []
 	for t in tokens:
@@ -194,15 +212,19 @@ def length_product(s, d):
 	len_s = math.sqrt(len_s)
 	return len_d*len_s
 
-# Calculates the distance between two vectors according to cosine similarity 
-# algorithm.
+"""
+Calculates the distance between two vectors according to cosine similarity 
+algorithm.
+"""
 def sd_distance(s, d):
 	num = dot_product(s, d)
 	den = length_product(s, d)
 	dist = num/den
 	return dist
 
-# Assigns every document in the collection to the closest cluster to it.
+"""
+Assigns every document in the collection to the closest cluster to it.
+"""
 def get_cluster(centroids, docs, inverted_index, c):
 	temp = []
 	for d in docs:
@@ -222,7 +244,9 @@ def get_cluster(centroids, docs, inverted_index, c):
 			cluster[tup[1]] = [(tup[2], tup[3])]
 	return cluster
 
-# After reclustering, this updates the centroids of the new clusters
+"""
+After reclustering, this updates the centroids of the new clusters.
+"""
 def update_centroids(cluster):
 	u = []
 	for i in cluster:
@@ -252,9 +276,11 @@ def write_to_file(k_clusters):
 
 def insert_to_db(k, cluster):
 	output = "True"
-	# Code to potentially insert to the history database the clusters created by 
-	# this function. This could be a really long list though which is why I'm 
-	# leaving it out for now.
+	"""
+	Code to potentially insert to the history database the clusters created by 
+	this function. This could be a really long list though which is why I'm 
+	leaving it out for now.
+	"""
 	"""
 	for c in cluster:
 		output+="("

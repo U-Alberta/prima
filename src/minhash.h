@@ -5,7 +5,8 @@
 #include "sqlite3.h"
 
 #define ARRAY_SIZE 128
-#define HASHVALUES 10 /* This will probably be something like 200 */
+/* This will probably be something like 200 */
+#define HASHVALUES 10
 
 /*
 For each document save a unique id, all the shingles, and all the initial hash 
@@ -26,11 +27,13 @@ typedef struct {
   int* minHashes;
 } MinHash;
 
-char* db_name = "shingles.db";
+char* db_name = "processed/shingles.db";
 char* sql_select_stmt_one = "SELECT COUNT(DISTINCT docid) FROM Shingle;";
 char* sql_select_stmt_two = "SELECT docid, COUNT(*) FROM Shingle GROUP BY docid;";
 char* sql_select_stmt_three = "SELECT docname, shingle FROM Shingle WHERE docid=?;";
 
+void main();
+void callMinHash();
 int minHash();
 int* genRandom();
 MinHash* getMinHash(DocShingles* s, MinHash* h, int* hashNums, int* shingleLengths, int documentCount);

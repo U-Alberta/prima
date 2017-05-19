@@ -47,6 +47,10 @@ def tfidf():
 		return -1
 	return 1
 
+"""
+Parse through all the documents in the corpus, generating a list of words and 
+documents.
+"""
 def build_texts():
 	texts = []
 	documents = []
@@ -78,6 +82,9 @@ def build_texts():
 				print("Error opening document {}".format(docid))
 	return texts, documents
 
+"""
+Use the gensim library to calculate tfidf.
+"""
 def get_tfidf(texts):
 	dictionary = corpora.Dictionary(texts)
 	corpus = [dictionary.doc2bow(text) for text in texts]
@@ -85,8 +92,10 @@ def get_tfidf(texts):
 	corpus_tfidf = tfidf[corpus]
 	return corpus_tfidf, corpus, dictionary
 
-# Write the tf, df, and tf-idf values of terms and documents to three files in 
-# the processed/tfidf folder.
+"""
+Write the tf, df, and tf-idf values of terms and documents to three files in 
+the processed/tfidf folder.
+"""
 def write_to_files(tfidf, raw_tf, dictionary, documents):
 	tokens = []
 	postings = []
@@ -131,7 +140,9 @@ def write_to_files(tfidf, raw_tf, dictionary, documents):
 	df_file.close()
 	return tokens, postings
 
-# This inserts all rows of the inverted index to a SQLite database.
+"""
+This inserts all rows of the inverted index to a SQLite database.
+"""
 def insert_inverted_index(tokens, postings):
 	conn = sqlite3.connect(IIDB)
 	c = conn.cursor()
@@ -144,7 +155,9 @@ def insert_inverted_index(tokens, postings):
 	conn.close()
 	return 1
 
-# Insert the command used, output, and time run to the history database.
+"""
+Insert the command used, output, and time run to the history database.
+"""
 def insert_to_db():
 	time = datetime.datetime.now()
 	line = ("tfidf", "", "True", time,)

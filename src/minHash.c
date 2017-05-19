@@ -1,7 +1,7 @@
 #include "minhash.h"
 
-int main() {
-	minHash();
+void main() {
+	int retval = minHash();
 }
 
 int minHash() {
@@ -11,7 +11,6 @@ int minHash() {
   int* shingleLengths;
   DocShingles* s;
   MinHash* h;
-  printf("1\n");
 
   /*
   The first SQL statement gets the number of documents in the collection.

@@ -22,15 +22,19 @@ def word_count():
 	param = sys.argv[1]
 	param = param.strip("/")
 	depth = len(param.split("/"))
-	# Depending on the file depth of the path given by the user (to a 
-	# collection, item, etc), compute n.
+	"""
+	Depending on the file depth of the path given by the user (to a 
+	collection, item, etc), compute n.
+	"""
 	try:
 		n = get_n(depth, param)
 	except:
 		print("Error counting words")
 		return -1
-	# Once n has been sucessfully computed, create a file in the appropriate 
-	# place (name_outfile) and save the value of n in there.
+	"""
+	Once n has been sucessfully computed, create a file in the appropriate 
+	place (name_outfile) and save the value of n in there.
+	"""
 	try:
 		output = str(n)
 		write_to_file(output, param)
@@ -45,8 +49,10 @@ def word_count():
 		return -1
 	return 1
 
-# This determines whether the user wanted collection, item, file, or line-level 
-# word count by checking how many '/'s were used in the input path.
+"""
+This determines whether the user wanted collection, item, file, or line-level 
+word count by checking how many '/'s were used in the input path.
+"""
 def get_n(depth, path):
 	if depth == 1:
 		try:
@@ -85,9 +91,11 @@ def get_n(depth, path):
 		return -1
 	return n
 
-# If the user gave something higher than a line, iterate through objects and 
-# call the next lower function (collection calls item which calls file which 
-# calls line).
+"""
+If the user gave something higher than a line, iterate through objects and 
+call the next lower function (collection calls item which calls file which 
+calls line).
+"""
 def count_collection(path):
 	n = 0
 	for doc_path in os.listdir(path):
@@ -108,8 +116,10 @@ def count_file(path):
 	doc.close()
 	return n
 
-# When count_line is called, tokenize the line, remove symbols and count the 
-# words.
+"""
+When count_line is called, tokenize the line, remove symbols and count the 
+words.
+"""
 def count_line(line):
 	n = 0
 	try:
@@ -122,17 +132,21 @@ def count_line(line):
 		print("Error counting words in line {}, moving on".format(line))
 	return n
 
-# Write the word count value to the generated outfilename in the 
-# processed/word_count folder.
+"""
+Write the word count value to the generated outfilename in the 
+processed/word_count folder.
+"""
 def write_to_file(output, path):
 	outfilename = name_outfile(path)
 	outfile = open(outfilename, "w")
 	outfile.write(output)
 	outfile.close()
 
-# With the path given, create a unique file name for each potential input 
-# line, file, item, or collection. If the directory processed/word_count 
-# doesn't exist, create it so we can add the output file to it later.
+"""
+With the path given, create a unique file name for each potential input 
+line, file, item, or collection. If the directory processed/word_count 
+doesn't exist, create it so we can add the output file to it later.
+"""
 def name_outfile(path):
 	path = path.split("/")
 	clean_path = []
@@ -148,7 +162,9 @@ def name_outfile(path):
 		os.makedirs(WORDCOUNTFOLDER)
 	return outfile
 
-# Insert the command used, output, and time run to the history database.
+"""
+Insert the command used, output, and time run to the history database.
+"""
 def insert_to_db(param, output):
 	time = datetime.datetime.now()
 	line = ("word_count", param, output, time,)

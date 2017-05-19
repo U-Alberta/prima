@@ -49,8 +49,10 @@ def lsi():
 		return -1
 	return 1
 
-# Iterate through all the documents in the collection saving all the tokens in 
-# the collection to a sorted list to be used later creating a matrix.
+"""
+Iterate through all the documents in the collection saving all the tokens in 
+the collection to a sorted list to be used later creating a matrix.
+"""
 def get_toks_docs():
 	toks = []
 	docs = []
@@ -74,9 +76,11 @@ def get_toks_docs():
 	toks.sort()
 	return toks, docs
 
-# Iterate through all the documents in the collection counting occurances of 
-# terms in each document and appending them to the appropriate position of the 
-# df dictionary.
+"""
+Iterate through all the documents in the collection counting occurances of 
+terms in each document and appending them to the appropriate position of the 
+df dictionary.
+"""
 def get_ct(tokens):
 	ct = []
 	i = 0
@@ -101,8 +105,10 @@ def get_ct(tokens):
 			doc.close()
 	return np.matrix(ct)
 
-# Using the linear algebra python library, calculate the svd, adjust it to 
-# the dimensions of k, and produce a new matrix ck as output.
+"""
+Using the linear algebra python library, calculate the svd, adjust it to 
+the dimensions of k, and produce a new matrix ck as output.
+"""
 def get_ck(ct, k):
 	c = ct.T
 	u_prime, s, vt = la.svd(c)
@@ -131,7 +137,9 @@ def get_ck(ct, k):
 	#for _ in ck: print _
 	return ck
 
-# Reduce the dimensions of sigma to kxk and of u to kxm.
+"""
+Reduce the dimensions of sigma to kxk and of u to kxm.
+"""
 def get_k_sigma_u(sigma, u, k):
 	new_sigma = []
 	new_u = []
@@ -141,7 +149,9 @@ def get_k_sigma_u(sigma, u, k):
 			new_sigma.append(sigma[i][:k])
 	return np.matrix(new_sigma), np.matrix(new_u)
 
-# Write the newly created matrix ck to a csv file in the processed/lsi folder.
+"""
+Write the newly created matrix ck to a csv file in the processed/lsi folder.
+"""
 def write_to_file(ck, docs):
 	df = pd.DataFrame(ck, columns=docs)
 	if not os.path.exists(LSIFOLDER):
@@ -149,7 +159,9 @@ def write_to_file(ck, docs):
 	df.to_csv(LSIFOLDER+"lsi.csv")
 	return 1
 
-# Insert the command used, output, and time run to the history database.
+"""
+Insert the command used, output, and time run to the history database.
+"""
 def insert_to_db(k):
 	time = datetime.datetime.now()
 	line = ("lsi", k, "True", time,)
