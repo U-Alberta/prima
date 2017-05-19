@@ -1,5 +1,8 @@
 #!/usr/bin/python
 import datetime
+from gensim import corpora, models
+import nltk.tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
 import numpy as np
 from scipy import linalg as la
 import os
@@ -23,22 +26,17 @@ def lsi():
 		return -1
 	k = int(sys.argv[1])
 	try:
-		tokens, docs = get_toks_docs()
+		texts, documents = build_texts()
 	except:
 		print("Error getting tokens")
 		return -1
 	try:
-		ct = get_ct(tokens)
+		ck = get_lsi(texts, k)
 	except:
 		print("Error getting df matrix")
 		return -1
 	try:
-		ck = get_ck(ct, k)
-	except:
-		print("Error getting c{} matrix".format(k))
-		return -1
-	try:
-		write_to_file(ck, docs)
+		write_to_file(ck, documents)
 	except:
 		print("Error saving result to file")
 		return -1
@@ -50,104 +48,50 @@ def lsi():
 	return 1
 
 """
-Iterate through all the documents in the collection saving all the tokens in 
-the collection to a sorted list to be used later creating a matrix.
+Parse through all the documents in the corpus, generating a list of words and 
+documents.
 """
-def get_toks_docs():
-	toks = []
-	docs = []
-	for item in os.listdir("source"):
+def build_texts():
+	texts = []
+	documents = []
+	for item in sorted(os.listdir("source")):
+		itemid = "".join(item.split("_"))
 		for file in sorted(os.listdir("source/"+item)):
-			docname = "source/"+item+"/"+file
-			doc = open(docname)
-			docs.append(docname)
-			for line in doc:
-				sentence_list = sent_tokenize(line)
-				for sentence in sentence_list:
-					for term in word_tokenize(sentence):
-						if term[0] not in PUNC.keys():
-							try:
-								term = term.lower()
-								if term not in toks:
-									toks.append(term)
-							except:
-								pass
-			doc.close()
-	toks.sort()
-	return toks, docs
+			fileid = file.split(".")[0]
+			docid = "source/"+itemid+"/"+fileid
+			try:
+				doc = open("source/"+item+"/"+file, "r")
+				documents.append(docid)
+				doc_text = []
+				for line in doc:
+					sentence_list = sent_tokenize(line.decode("utf-8"))
+					for sentence in sentence_list:
+						for term in word_tokenize(sentence):
+							if term[0] not in PUNC.keys():
+								try:
+									term = term.lower()
+									doc_text.append(term)
+								except:
+									pass
+				texts.append(doc_text)
+			except:
+				print("Error opening document {}".format(docid))
+	return texts, documents
 
-"""
-Iterate through all the documents in the collection counting occurances of 
-terms in each document and appending them to the appropriate position of the 
-df dictionary.
-"""
-def get_ct(tokens):
-	ct = []
-	i = 0
-	for item in os.listdir("source"):
-		for file in sorted(os.listdir("source/"+item)):
-			docname = "source/"+item+"/"+file
-			doc = open(docname)
-			row = [0]*len(tokens)
-			for line in doc:
-				sentence_list = sent_tokenize(line)
-				for sentence in sentence_list:
-					for term in word_tokenize(sentence):
-						if term[0] not in PUNC.keys():
-							try:
-								term = term.lower()
-								loc = tokens.index(term)
-								row[loc]+=1
-							except:
-								pass
-			i+=1
-			ct.append(row)
-			doc.close()
-	return np.matrix(ct)
-
-"""
-Using the linear algebra python library, calculate the svd, adjust it to 
-the dimensions of k, and produce a new matrix ck as output.
-"""
-def get_ck(ct, k):
-	c = ct.T
-	u_prime, s, vt = la.svd(c)
-	m, n = c.shape
-	sigma_prime = la.diagsvd(s, min(m, n), min(m, n))
-	sigma, u = get_k_sigma_u(sigma_prime, u_prime, k)
-	#print("u:")
-	#for _ in u: print _
-	#print("sigma:")
-	#for _ in sigma: print _
-	ck = u*sigma
-	ck = np.matrix(ck)
-	#print("u*sigma:")
-	#for _ in ck: print _
-	vt = vt[:k]
-	vt = np.matrix(vt)
-	#print ("vt:")
-	#for _ in vt: print _
-	#two = sigma*vt
-	#two = np.matrix(two)
-	#print("sigma*vt:")
-	#for _ in two: print _
-	ck = ck*vt
-	ck = np.matrix(ck)
-	#print("ck:")
-	#for _ in ck: print _
+def get_lsi(texts, k):
+	dictionary = corpora.Dictionary(texts)
+	corpus = [dictionary.doc2bow(text) for text in texts]
+	tfidf = models.TfidfModel(corpus)
+	corpus_tfidf = tfidf[corpus]
+	lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=k)
+	corpus_lsi = lsi[corpus_tfidf]
+	ck = []
+	for i in range(0, len(corpus_lsi[0])):
+		ck.append([])
+	for row in corpus_lsi:
+		for i in range(0, len(row)):
+			ck[i].append(row[i][1])
 	return ck
-
-"""
-Reduce the dimensions of sigma to kxk and of u to kxm.
-"""
-def get_k_sigma_u(sigma, u, k):
-	new_sigma = []
-	new_u = []
-	for i in range(0, len(u)):
-		new_u.append(u[i][:k])
-		if i < k:
-			new_sigma.append(sigma[i][:k])
-	return np.matrix(new_sigma), np.matrix(new_u)
 
 """
 Write the newly created matrix ck to a csv file in the processed/lsi folder.
