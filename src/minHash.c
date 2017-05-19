@@ -1,17 +1,27 @@
-#include "header.h"
+#include "minhash.h"
 
 int main() {
+	minHash();
+}
+
+int minHash() {
   sqlite3* db;
   sqlite3_stmt* stmt;
 	int rc=0, col=0, documentCount=0;
   int* shingleLengths;
   DocShingles* s;
   MinHash* h;
+  printf("1\n");
 
   /*
   The first SQL statement gets the number of documents in the collection.
   */
   rc = sqlite3_open(db_name, &db);
+  if (rc) {
+    fprintf(stderr, "Can't open database %s\n", sqlite3_errmsg(db));
+    sqlite3_close(db);
+    return 1;
+  }
   rc = sqlite3_prepare_v2(db, sql_select_stmt_one, -1, &stmt, 0);
   if (rc != SQLITE_OK) {  
     fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
@@ -39,7 +49,7 @@ int main() {
   	int id = atoi(sqlite3_column_text(stmt, 0));
   	int length = atoi(sqlite3_column_text(stmt, 1));
   	shingleLengths[id] = length;
-  	shingleLenSum = shingleLenSum + length;
+  	shingleLenSum += length;
   }
   sqlite3_finalize(stmt);
 
@@ -55,7 +65,7 @@ int main() {
 
   /*
 	The third SQL statement loops through all the documents, populating 
-	s[id].shingles with the shingles in that document.
+	s[i].shingles with the shingles in that document.
   */
   for (int i=0; i<documentCount; ++i) {
   	rc = sqlite3_prepare_v2(db, sql_select_stmt_three, -1, &stmt, 0);
@@ -71,7 +81,7 @@ int main() {
 		int string_lengths = 0;
 		while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
 			const char* txt = sqlite3_column_text(stmt, 1);
-			string_lengths = string_lengths + strlen(txt) + 1;
+			string_lengths += strlen(txt) + 1;
 			s[i].shingles = (char**) realloc(s[i].shingles, sizeof(char**)+\
 				string_lengths);
 			s[i].shingles[shinglenum] = (char*) malloc(strlen(txt)+1);
@@ -80,7 +90,8 @@ int main() {
 		}
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-  }sqlite3_close(db);
+  }
+  sqlite3_close(db);
 
   /*
 	Then loop through shingles in every document calculating initial hash values.
@@ -106,7 +117,7 @@ int main() {
       printf("%i\n", h[i].minHashes[j]);
     }
   }*/
-  free_everything(hashNums, s, h, shingleLengths, documentCount);
+  freeEverything(hashNums, s, h, shingleLengths, documentCount);
   return 1;
 }
 
@@ -167,7 +178,7 @@ int hash(unsigned char* str) {
 /*
 Free all malloc'd memory.
 */
-void free_everything(int* hashNums, DocShingles* s, MinHash* h, int* shingleLengths, int documentCount) {
+void freeEverything(int* hashNums, DocShingles* s, MinHash* h, int* shingleLengths, int documentCount) {
   for (int i=0; i<documentCount; ++i) {
   	free(h[i].minHashes);
   	free(s[i].hash);
@@ -181,37 +192,3 @@ void free_everything(int* hashNums, DocShingles* s, MinHash* h, int* shingleLeng
   free(s);
   free(shingleLengths);
 }
-
-
-
-
-
-/*
-This is all the crap for calling this from min_hash.py and it works but I want 
-to get all this c code started before I try to reconnect it to python.
-
-https://csl.name/post/c-functions-python/
-http://stackoverflow.com/questions/16647186/calling-c-functions-in-python
-
-#include <Python.h>
-static PyObject* py_getHash(PyObject* self, PyObject* args) {
-  char *s = "Hello from C!";
-  return Py_BuildValue("s", s);
-}
-
-static PyObject* py_myOtherFunction(PyObject* self, PyObject* args)
-{
-  double x, y;
-  PyArg_ParseTuple(args, "dd", &x, &y);
-  return Py_BuildValue("d", x*y);
-}
-
-static PyMethodDef minHash_methods[] = {
-  {"getHash", py_getHash, METH_VARARGS},
-  {"myOtherFunction", py_myOtherFunction, METH_VARARGS},
-  {NULL, NULL}
-};
-
-void initminHash() {
-  (void) Py_InitModule("minHash", minHash_methods);
-} */

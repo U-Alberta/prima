@@ -27,11 +27,12 @@ typedef struct {
 } MinHash;
 
 char* db_name = "shingles.db";
-char* sql_select_stmt_one = "SELECT COUNT(DISTINCT docid) FROM Shingles;";
-char* sql_select_stmt_two = "SELECT docid, COUNT(*) FROM Shingles GROUP BY docid;";
-char* sql_select_stmt_three = "SELECT docname, shingle FROM Shingles WHERE docid=?;";
+char* sql_select_stmt_one = "SELECT COUNT(DISTINCT docid) FROM Shingle;";
+char* sql_select_stmt_two = "SELECT docid, COUNT(*) FROM Shingle GROUP BY docid;";
+char* sql_select_stmt_three = "SELECT docname, shingle FROM Shingle WHERE docid=?;";
 
+int minHash();
 int* genRandom();
 MinHash* getMinHash(DocShingles* s, MinHash* h, int* hashNums, int* shingleLengths, int documentCount);
 int hash(unsigned char* str);
-void free_everything(int* hashNums, DocShingles* s, MinHash* h, int* shingleLengths, int documentCount);
+void freeEverything(int* hashNums, DocShingles* s, MinHash* h, int* shingleLengths, int documentCount);

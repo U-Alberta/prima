@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import datetime
-import linecache
-import math
+from gensim import corpora, models
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
@@ -10,12 +9,8 @@ import sys
 
 PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
 	"(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, 	"}":0, \
-	"\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, \
-	"/":0, "?":0, "'d":0, "'ll":0, "'re":0, "'s":0, "'ve":0}
+	"|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0}
 TFIDFFOLDER = "processed/tfidf"
-TFFILE = "processed/tfidf/tf.txt"
-DFFILE = "processed/tfidf/df.txt"
-IDFFILE = "processed/tfidf/tfidf.txt"
 HISTDB = "processed/hist.db"
 IIDB = "processed/inverted_index.db"
 
@@ -26,27 +21,22 @@ def tfidf():
 		print("Usage: ~/tfidf.sh")
 		return -1
 	try:
-		corpus_list, n = build_corpus_list()
+		texts, documents = build_texts()
 	except:
-		print("Error building corpus list")
+		print("Error parsing through documents in collection")
 		return -1
 	try:
-		inverted_index = build_inverted_index(corpus_list)
-	except:
-		print("Error building inverted index")
-		return -1
-	try:
-		tokens, postings = tf_idf_calc(inverted_index, n)
+		tfidf, raw_tf, dictionary = get_tfidf(texts)
 	except:
 		print("Error calculating tfidf values")
 		return -1
 	try:
-		write_to_files(inverted_index)
+		tokens, postings = write_to_files(tfidf, raw_tf, dictionary, documents)
 	except:
 		print("Error saving result to files")
 		return -1
 	try:
-		insert_inverted_index(inverted_index, tokens, postings)
+		insert_inverted_index(tokens, postings)
 	except:
 		print("Error saving to inverted index database {}".format(IIDB))
 		return -1
@@ -57,11 +47,10 @@ def tfidf():
 		return -1
 	return 1
 
-# This builds a list of tuples which hold all the terms along with the documents 
-# they appear in.
-def build_corpus_list():
-	n = 0
-	corpus_list = []
+def build_texts():
+	texts = []
+	documents = []
+	raw_df = {}
 	for item in sorted(os.listdir("source")):
 		itemid = "".join(item.split("_"))
 		for file in sorted(os.listdir("source/"+item)):
@@ -69,92 +58,81 @@ def build_corpus_list():
 			docid = "source/"+itemid+"/"+fileid
 			try:
 				doc = open("source/"+item+"/"+file, "r")
-				n+=1
+				documents.append(docid)
+				doc_text = []
 				for line in doc:
 					sentence_list = sent_tokenize(line.decode("utf-8"))
 					for sentence in sentence_list:
 						for term in word_tokenize(sentence):
-							if term not in PUNC:
+							if term[0] not in PUNC.keys():
 								try:
 									term = term.lower()
+									doc_text.append(term)
+									if term not in raw_df.keys():
+										raw_df[term] = 0
+									raw_df[term]+=1
 								except:
 									pass
-								corpus_list.append((term, docid))
+				texts.append(doc_text)
 			except:
-				print("Error opening document: {}".format(docid))
-	corpus_list.sort(key=lambda tup: tup[0])
-	return corpus_list, n
+				print("Error opening document {}".format(docid))
+	return texts, documents
 
-# This takes the corpus list and condenses it into an inverted index.
-def build_inverted_index(corpus_list):
-	inverted_index = {}
-	i = 0
-	prev_token = ""
-	prev_docid = ""
-	while i < len(corpus_list):
-		token = corpus_list[i][0]
-		docid = str(corpus_list[i][1])
-		if token == prev_token:
-			if prev_docid == docid:
-				inverted_index[token]["postings"][docid]["tf"]+=1
-			else:
-				prev_docid = docid
-				inverted_index[token]["df"]+=1
-				inverted_index[token]["postings"][docid] = {"tf":1, "tf-idf":0}
-		else:
-			prev_token = token
-			prev_docid = docid
-			inverted_index[token] = {"df":1, "postings":{docid:{"tf":1, "tf-idf":0}}}
-		i+=1
-	return inverted_index
-
-# This calculates the tf-idf value for each term in the inverted index and 
-# while doing this also builds two lists which are used to do the mass 
-# insert to the db.
-def tf_idf_calc(inverted_index, n):
-	token_id = 0
-	tokens = []
-	postings = []
-	for key in inverted_index:
-		token = inverted_index[key]
-		token_id += 1
-		df = token["df"]
-		idf = math.log10(float(n)/df)
-		tokens.append((key, df, token_id))
-		for doc in token["postings"]:
-			tf = token["postings"][doc]["tf"]
-			tf_idf = tf * idf
-			token["postings"][doc]["tf-idf"] = tf_idf
-			postings.append((token_id, doc, tf, tf_idf))
-	return tokens, postings
+def get_tfidf(texts):
+	dictionary = corpora.Dictionary(texts)
+	corpus = [dictionary.doc2bow(text) for text in texts]
+	tfidf = models.TfidfModel(corpus)
+	corpus_tfidf = tfidf[corpus]
+	return corpus_tfidf, corpus, dictionary
 
 # Write the tf, df, and tf-idf values of terms and documents to three files in 
 # the processed/tfidf folder.
-def write_to_files(inverted_index):
+def write_to_files(tfidf, raw_tf, dictionary, documents):
+	tokens = []
+	postings = []
+	raw_df = {}
 	if not os.path.exists(TFIDFFOLDER):
 		os.makedirs(TFIDFFOLDER)
-	df_file = open(DFFILE, "w")
-	df_file.write("term:\tdocument frequency\n\n")
-	tf_file = open(TFFILE, "w")
-	tf_file.write("term, document:\tterm frequency\n\n")
-	idf_file = open(IDFFILE, "w")
+	idf_file = open(TFIDFFOLDER+"/tfidf.txt", "w")
 	idf_file.write("term, document:\ttf-idf\n\n")
-	for t in inverted_index.keys():
-		value = str(inverted_index[t]["df"])
-		df_file.write(t+":\t"+value+"\n")
-		for doc in inverted_index[t]["postings"].keys():
-			doc_posting = inverted_index[t]["postings"][doc]
-			value = str(doc_posting["tf"])
-			tf_file.write(t+", "+doc+":\t"+value+"\n")
-			value = str(doc_posting["tf-idf"])
-			idf_file.write(t+", "+doc+":\t"+value+"\n")
+	tf_file = open(TFIDFFOLDER+"/tf.txt", "w")
+	tf_file.write("term, document:\ttf\n\n")
+	df_file = open(TFIDFFOLDER+"/df.txt", "w")
+	df_file.write("term:\tdf\n\n")
+	i = 0
+	for doc_tfidf in tfidf:
+		doc_tf = raw_tf[i]
+		docid = documents[i]
+		j = 0
+		for posting in doc_tfidf:
+			token_id = posting[0]
+			term = dictionary[token_id]
+			tfidf = posting[1]
+			tf = doc_tf[j][1]
+			line = term+", "+docid+":\t"+str(tfidf)+"\n"
+			idf_file.write(line)
+			line = term+", "+docid+":\t"+str(tf)+"\n"
+			tf_file.write(line)
+			postings.append((token_id, i, tf, tfidf))
+			if term not in raw_df.keys():
+				raw_df[term] = (0, token_id)
+			tmp = raw_df[term][0]
+			raw_df[term] = (tmp+1, token_id)
+			j+=1
+		i+=1
+	for term in raw_df.keys():
+		df = raw_df[term][0]
+		token_id = raw_df[term][1]
+		tokens.append((term, df, token_id))
+		line = term+":\t"+str(df)+"\n"
+		df_file.write(line)
+	idf_file.close()
 	tf_file.close()
 	df_file.close()
-	idf_file.close()
-	return 1
+	return tokens, postings
 
 # This inserts all rows of the inverted index to a SQLite database.
-def insert_inverted_index(inverted_index, tokens, postings):
+def insert_inverted_index(tokens, postings):
 	conn = sqlite3.connect(IIDB)
 	c = conn.cursor()
 	c.execute("CREATE TABLE Token(token text, df int, token_id int PRIMARY KEY)")

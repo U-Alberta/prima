@@ -7,15 +7,15 @@ import pandas as pd
 import sqlite3
 import sys
 
-PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, \
-	"*":0, "(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, \
-	"}":0, "\\":0, "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, \
-	">":0, "/":0, "?":0}
+PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
+	"(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, 	"}":0, \
+	"|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0}
 LSIFOLDER = "processed/lsi/"
 HISTDB = "processed/hist.db"
 
 # TODO: queries?
 # TODO: allow to work on specific directories like word_count?
+# TODO: gensim
 def lsi():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
@@ -24,7 +24,6 @@ def lsi():
 	k = int(sys.argv[1])
 	try:
 		tokens, docs = get_toks_docs()
-		#tokens = ['ship','boat','ocean','voyage','trip'] <= for the book example
 	except:
 		print("Error getting tokens")
 		return -1
@@ -64,13 +63,13 @@ def get_toks_docs():
 				sentence_list = sent_tokenize(line)
 				for sentence in sentence_list:
 					for term in word_tokenize(sentence):
-						if term[0] not in PUNC:
+						if term[0] not in PUNC.keys():
 							try:
 								term = term.lower()
+								if term not in toks:
+									toks.append(term)
 							except:
 								pass
-							if term not in toks:
-								toks.append(term)
 			doc.close()
 	toks.sort()
 	return toks, docs
@@ -90,7 +89,7 @@ def get_ct(tokens):
 				sentence_list = sent_tokenize(line)
 				for sentence in sentence_list:
 					for term in word_tokenize(sentence):
-						if term[0] not in PUNC:
+						if term[0] not in PUNC.keys():
 							try:
 								term = term.lower()
 								loc = tokens.index(term)
