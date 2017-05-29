@@ -7,51 +7,32 @@ void main() {
 int minHash() {
   sqlite3* db;
   sqlite3_stmt* stmt;
-	int rc=0, col=0, documentCount=0;
-  int* shingleLengths;
+	int rc=0, shingleLenSum=0;
   DocShingles* s;
   MinHash* h;
 
-  /*
-  The first SQL statement gets the number of documents in the collection.
-  */
+  int* hashNums = genRandom();
   rc = sqlite3_open(db_name, &db);
   if (rc) {
     fprintf(stderr, "Can't open database %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
-    return 1;
+    return -1;
   }
-  rc = sqlite3_prepare_v2(db, sql_select_stmt_one, -1, &stmt, 0);
-  if (rc != SQLITE_OK) {  
-    fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
-    sqlite3_close(db);
-    return 1;
-  }
-  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-	  documentCount = atoi(sqlite3_column_text(stmt, 0));
-	}
-  sqlite3_finalize(stmt);
-
   /*
-  The second SQL statement gets the number of shingles in each document 
-  in the collection and the sum of these shingles.
+	The results of first two SQL statements are used to malloc s and h below.
   */
-  shingleLengths = (int*) malloc(sizeof(int)*documentCount);
-  rc = sqlite3_prepare_v2(db, sql_select_stmt_two, -1, &stmt, 0);
-  if (rc != SQLITE_OK) {  
-    fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
-    sqlite3_close(db);
-    return 1;
+  int documentCount = sqlStmtOne(rc, db, stmt);
+  if (documentCount == 0) {
+    return -1;
   }
-  int shingleLenSum = 0;
-  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-  	int id = atoi(sqlite3_column_text(stmt, 0));
-  	int length = atoi(sqlite3_column_text(stmt, 1));
-  	shingleLengths[id] = length;
-  	shingleLenSum += length;
+  int* shingleLengths = (int*) malloc(sizeof(int)*documentCount);
+  shingleLengths = sqlStmtTwo(documentCount, shingleLengths, rc, db, stmt);
+  if (shingleLengths[0] == 0) {
+    return -1;
   }
-  sqlite3_finalize(stmt);
-
+  for (int i=0; i<documentCount; ++i) {
+    shingleLenSum+=shingleLengths[i];
+  }
   /*
   Initialize the sizes of s and h for the number of documents and shingles. 
   hashNums generates HASHVALUES random numbers.
@@ -60,40 +41,21 @@ int minHash() {
   	(sizeof(char*)*shingleLenSum));
   h = (MinHash*) malloc((sizeof(MinHash)*documentCount) + \
   	(sizeof(int)*shingleLenSum));
-  int* hashNums = genRandom();
-
   /*
-	The third SQL statement loops through all the documents, populating 
-	s[i].shingles with the shingles in that document.
+	The last two SQL statements populate s and h.
   */
-  for (int i=0; i<documentCount; ++i) {
-  	rc = sqlite3_prepare_v2(db, sql_select_stmt_three, -1, &stmt, 0);
-  	sqlite3_bind_int(stmt, 1, i);
-		if (rc != SQLITE_OK) {  
-		  fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
-		  sqlite3_close(db);
-		  return 1;
-		}
-		s[i].shingles = (char**) malloc(sizeof(char**));
-		s[i].docid = i;
-		int shinglenum = 0;
-		int string_lengths = 0;
-		while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-			const char* txt = sqlite3_column_text(stmt, 1);
-			string_lengths += strlen(txt) + 1;
-			s[i].shingles = (char**) realloc(s[i].shingles, sizeof(char**)+\
-				string_lengths);
-			s[i].shingles[shinglenum] = (char*) malloc(strlen(txt)+1);
-			strcpy(s[i].shingles[shinglenum], txt);
-			++shinglenum;
-		}
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
+  s = sqlStmtThree(documentCount, s, rc, db, stmt);
+  if (s[0].docid == NULL) {
+    return -1;
+  }
+  s = sqlStmtFour(documentCount, s, rc, db, stmt);
+  if (s[0].docid == NULL) {
+    return -1;
   }
   sqlite3_close(db);
 
   /*
-	Then loop through shingles in every document calculating initial hash values.
+	Loop through shingles in every document calculating initial hash values.
   */
   for (int i=0; i<documentCount; ++i) {
     s[i].hash = (int*) malloc(sizeof(int*) * shingleLengths[i]);
@@ -116,11 +78,13 @@ int minHash() {
       printf("%i\n", h[i].minHashes[j]);
     }
   }*/
-  /*
-  TODO: output to a csv file (sqlite3 db would be so much nicer tbh)
-  */
-  print_to_csv(h, documentCount);
 
+  /*
+  printToCSV saves all the documents and their corresponding minHash values to 
+  a csv file in the processed/min_hash directory. Finally free all malloc'd
+  memory.
+  */
+  printToCSV(h, documentCount);
   freeEverything(hashNums, s, h, shingleLengths, documentCount);
   return 1;
 }
@@ -135,6 +99,108 @@ int* genRandom() {
     hashNums[i] = r;
   }
   return hashNums;
+}
+
+/*
+The first SQL statement gets the number of documents in the collection.
+*/
+int sqlStmtOne(int rc, sqlite3* db, sqlite3_stmt* stmt) {
+  int documentCount;
+  rc = sqlite3_prepare_v2(db, sql_select_stmt_one, -1, &stmt, 0);
+  if (rc != SQLITE_OK) {  
+    fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
+    sqlite3_close(db);
+    return 0;
+  }
+  while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    documentCount = atoi(sqlite3_column_text(stmt, 0));
+  }
+  sqlite3_finalize(stmt);
+  return documentCount;
+}
+
+/*
+The second SQL statement gets the number of shingles in each document 
+in the collection and the sum of these shingles.
+*/
+int* sqlStmtTwo(int documentCount, int* shingleLengths, int rc, sqlite3* db, \
+  sqlite3_stmt* stmt) {
+  rc = sqlite3_prepare_v2(db, sql_select_stmt_two, -1, &stmt, 0);
+  if (rc != SQLITE_OK) {  
+    fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
+    sqlite3_close(db);
+    shingleLengths[0] = 0;
+  }
+  else {
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+      int id = atoi(sqlite3_column_text(stmt, 0));
+      int length = atoi(sqlite3_column_text(stmt, 1));
+      shingleLengths[id] = length;
+    }
+    sqlite3_finalize(stmt);
+  }
+  return shingleLengths;
+}
+
+/*
+The third SQL statement loops through all the documents, populating 
+s[i].docid with the name of that document.
+*/
+DocShingles* sqlStmtThree(int documentCount, DocShingles* s, int rc, sqlite3* db, sqlite3_stmt* stmt) {
+  for (int i=0; i<documentCount; ++i) {
+    rc = sqlite3_prepare_v2(db, sql_select_stmt_three, -1, &stmt, 0);
+    sqlite3_bind_int(stmt, 1, i);
+    if (rc != SQLITE_OK) {  
+      fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
+      sqlite3_close(db);
+      s[0].docid = NULL;
+    }
+    else {
+      int string_lengths = 0;
+      while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char* txt = sqlite3_column_text(stmt, 0);
+        string_lengths += strlen(txt) + 1;
+        s[i].docid = (char*) malloc(sizeof(char*)+string_lengths);
+        strcpy(s[i].docid, txt);
+      }
+      sqlite3_reset(stmt);
+      sqlite3_finalize(stmt);
+    }
+  }
+  return s;
+}
+
+/*
+The fourth SQL statement loops through all the documents, populating 
+s[i].shingles with the shingles in that document.
+*/
+DocShingles* sqlStmtFour(int documentCount, DocShingles* s, int rc, sqlite3* db, sqlite3_stmt* stmt) {
+  for (int i=0; i<documentCount; ++i) {
+  	rc = sqlite3_prepare_v2(db, sql_select_stmt_four, -1, &stmt, 0);
+  	sqlite3_bind_int(stmt, 1, i);
+		if (rc != SQLITE_OK) {  
+		  fprintf(stderr, "Preparation failed: %s\n", sqlite3_errmsg(db));
+		  sqlite3_close(db);
+		  s[0].docid = NULL;
+		}
+		else {
+			s[i].shingles = (char**) malloc(sizeof(char**));
+			int shinglenum = 0;
+			int string_lengths = 0;
+			while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+				const char* txt = sqlite3_column_text(stmt, 0);
+				string_lengths += strlen(txt) + 1;
+				s[i].shingles = (char**) realloc(s[i].shingles, sizeof(char**)+\
+					string_lengths);
+				s[i].shingles[shinglenum] = (char*) malloc(strlen(txt)+1);
+				strcpy(s[i].shingles[shinglenum], txt);
+				++shinglenum;
+			}
+			sqlite3_reset(stmt);
+			sqlite3_finalize(stmt);
+		}
+  }
+  return s;
 }
 
 /*
@@ -179,13 +245,16 @@ int hash(unsigned char* str) {
   return hash;
 }
 
-void print_to_csv(MinHash *h, int documentCount) {
+/*
+Print a table of documents and their hash values to a csv file.
+*/
+void printToCSV(MinHash *h, int documentCount) {
   FILE *fp;
   char *filename = "processed/min_hash/min_hash.csv";
   fp = fopen(filename, "w+");
   fprintf(fp, " ");
-  for (int i=1; i<=documentCount; ++i) {
-    fprintf(fp, ", %i", i);
+  for (int i=0; i<documentCount; ++i) {
+    fprintf(fp, ", %s", h[i].docid);
   }
   for (int i=0; i<HASHVALUES; ++i) {
     fprintf(fp, "\n%i", i+1);
