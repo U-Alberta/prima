@@ -58,6 +58,6 @@ will reduce the term-document matrix c into a k-by-k matrix and save it in lsi.c
 ### lda.sh: TODO
 
 ### min_hash.sh:
-Still need to figure out the output and if queries can be entered as input?
+Taking no input (as of now), this compares documents in the source/ directory using the [MinHash algorithm](https://en.wikipedia.org/wiki/MinHash). These values are then saved in processed/min_hash/min_hash.csv as a table with columns labelled by document ids and rows corresponding to each different hash function used.
   >
     $ ~/path/to/prima/tools/min_hash.sh
