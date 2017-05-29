@@ -35,6 +35,8 @@ def min_hash():
 		print("Error saving shingles to database {}".format(SHINGLEDB))
 		return -1
 	try:
+		if not os.path.exists(MINHASHFOLDER):
+			os.makedirs(MINHASHFOLDER)
 		call_c()
 	except:
 		print("Error calling c functions for hashing")

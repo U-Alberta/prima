@@ -116,6 +116,11 @@ int minHash() {
       printf("%i\n", h[i].minHashes[j]);
     }
   }*/
+  /*
+  TODO: output to a csv file (sqlite3 db would be so much nicer tbh)
+  */
+  print_to_csv(h, documentCount);
+
   freeEverything(hashNums, s, h, shingleLengths, documentCount);
   return 1;
 }
@@ -172,6 +177,23 @@ int hash(unsigned char* str) {
   while (c = *str++)
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   return hash;
+}
+
+void print_to_csv(MinHash *h, int documentCount) {
+  FILE *fp;
+  char *filename = "processed/min_hash/min_hash.csv";
+  fp = fopen(filename, "w+");
+  fprintf(fp, " ");
+  for (int i=1; i<=documentCount; ++i) {
+    fprintf(fp, ", %i", i);
+  }
+  for (int i=0; i<HASHVALUES; ++i) {
+    fprintf(fp, "\n%i", i+1);
+    for (int j=0; j<documentCount; ++j) {
+      fprintf(fp, ", %i", h[j].minHashes[i]);
+    }
+  }
+  fclose(fp);
 }
 
 /*

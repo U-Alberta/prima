@@ -62,7 +62,7 @@ def build_texts():
 			docid = "source/"+itemid+"/"+fileid
 			try:
 				doc = open("source/"+item+"/"+file, "r")
-				documents.append(docid)
+				documents.append(docid)sw
 				doc_text = []
 				for line in doc:
 					sentence_list = sent_tokenize(line.decode("utf-8"))

@@ -38,4 +38,5 @@ int minHash();
 int* genRandom();
 MinHash* getMinHash(DocShingles* s, MinHash* h, int* hashNums, int* shingleLengths, int documentCount);
 int hash(unsigned char* str);
+void print_to_csv(MinHash *h, int documentCount);
 void freeEverything(int* hashNums, DocShingles* s, MinHash* h, int* shingleLengths, int documentCount);
