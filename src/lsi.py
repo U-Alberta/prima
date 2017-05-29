@@ -3,8 +3,6 @@ import datetime
 from gensim import corpora, models
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
-import numpy as np
-from scipy import linalg as la
 import os
 import pandas as pd
 import sqlite3
@@ -16,9 +14,7 @@ PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
 LSIFOLDER = "processed/lsi/"
 HISTDB = "processed/hist.db"
 
-# TODO: queries?
 # TODO: allow to work on specific directories like word_count?
-# TODO: gensim
 def lsi():
 	if len(sys.argv) != 2:
 		print("Invalid number of command line arguments")
@@ -78,6 +74,10 @@ def build_texts():
 				print("Error opening document {}".format(docid))
 	return texts, documents
 
+"""
+I think line 86 trains the model on corpus and then loads the same model into 
+lsi which isn't great. TODO: figure out what's going on.
+"""
 def get_lsi(texts, k):
 	dictionary = corpora.Dictionary(texts)
 	corpus = [dictionary.doc2bow(text) for text in texts]
