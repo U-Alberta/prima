@@ -1,7 +1,7 @@
 # prima
 Personal Research Management for the IA
 
-## Setup
+## Installation
 1. Clone this repository to somewhere in your file system.
 2. This project uses the gensim library for some of the tools. You will need to download it from the [website](https://radimrehurek.com/gensim/)
 3. Setup a path to /prima/src and run the following, replacing ~/path/to with your personal path to the prima repository
@@ -25,47 +25,11 @@ Personal Research Management for the IA
 7. For every new collection to be created, repeat step 3 lines 3-5 and step 4 with the new collection before using any tools.
 
 ## Tools
-
-### k_means_clusterer.sh:
-Taking the number of clusters k as input, this clusters the documents in the corpus into k groups according to the [k means algorithm](https://en.wikipedia.org/wiki/K-means_clustering). For example, running
-  >
-    $ ~/path/to/prima/tools/k_means_clusterer.sh 3
-will classify the documents within the source/ folder into 3 clusters. The clusters and their associated documents are saved in processed/k_means/k_means.txt as tab-separated cluster ids and lists of documents. Vectors are weighted using lnc.ltc according to SMART notation.
-
-### lda.sh:
-Taking the number of dimensions k as input, this builds a low-rank approximation of a term document matrix of size k according to the [LDA statistical model](https://en.wikipedia.org/wiki/Latent_Dirichlet_allocation). This matrix is then saved in your collection directory/processed/lda/lda.csv. For example, running
-  >
-    $ ~/path/to/prima/tools/lda.sh 100
-will reduce the term-document matrix c into a 100-by-100 matrix and save it in lda.csv.
-
-### lsi.sh: 
-Taking the number of dimensions k as input, this builds a low-rank approximation of a term document matrix of size k according to the [LSI statistical model](https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing). This matrix is then saved in your collection directory/processed/lsi/lsi.csv. For example, running
-  >
-    $ ~/path/to/prima/tools/lsi.sh 100
-will reduce the term-document matrix c into a 100-by-100 matrix and save it in lsi.csv.
-
-### min_hash.sh:
-Taking no input (atm), this compares documents in the source/ directory using the [MinHash algorithm](https://en.wikipedia.org/wiki/MinHash). These values are then saved in processed/min_hash/min_hash.csv as a table with columns labelled by document names and rows corresponding to each different hash function used. Run with
-  >
-    $ ~/path/to/prima/tools/min_hash.sh
-
-### tfidf.sh: 
-Taking no input, this calculates the tf, df, and tfidf of all the documents in the collection in the source/ folder. These values are then saved in your collection directory/processed/tfidf as df.txt (holding tab-separated terms and their document frequencies), tf.txt (tab-separated term document pairs and their term frequencies), and tfidf.txt (tab-separated term document pairs and their tf-idf values). Run with 
-  >
-    $ ~/path/to/prima/tools/tfidf.sh
-
-This also creates a SQLite database in /processed/inverted_index.db which is used for later calculations but can be accessed by running the command
-  >
-    $ sqlite3 processed/inverted_index.db
-The database contains two tables; one holding tokens, their id's, and document frequency and another holding token postings in documents as well as tf-idf values.
-
-idf was calculated using log(N/df) where N is the size of documents in the corpus (corpus here is defined as the whole collection and N is the total number of documents read), tf is the term frequency of a term in a document, and df is the document frequency of a term in the corpus.
-
-### word_count.sh
-Given a directory depth starting from source (counts the entire collection) and going down to /source/item/file/lineno this will count all words in the readable files in the input directory. For example, running 
-  >
-    $ ~/path/to/prima/tools/word_count.sh source/item/filename.txt
-will create a file in your collection directory/processed/word_count called source_item_filename.txt with the word count of that document. Running
-  >
-    $ ~/path/to/prima/tools/word_count.sh source
-will create a file called source.txt with the word count of all documents in the source collection.
+Current available tools included in the prima are
+1. K-means clustering
+2. Latent Dirichlet allocation
+3. Latent semantic indexing
+4. MinHash
+5. tf-idf
+6. Word count
+More information on how exactly to use these can be found in the [wiki](https://github.com/U-Alberta/prima/wiki/Tools)
