@@ -25,11 +25,12 @@ Personal Research Management for the IA
 7. For every new collection to be created, repeat step 3 lines 3-5 and step 4 with the new collection before using any tools.
 
 ## Tools
-Current available tools included in the prima are
+Current available tools included in the prima are:
 1. K-means clustering
 2. Latent Dirichlet allocation
 3. Latent semantic indexing
 4. MinHash
 5. tf-idf
 6. Word count
+
 More information on how exactly to use these can be found in the [wiki](https://github.com/U-Alberta/prima/wiki/Tools)
