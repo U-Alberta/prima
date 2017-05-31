@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import datetime
+import glob
 import math
 import os
 import random
@@ -7,14 +7,12 @@ import sqlite3
 import sys
 
 KMEANSFOLDER = "processed/k_means/"
-HISTDB = "processed/hist.db"
 IIDB = "processed/inverted_index.db"
 
 # TODO: allow to work on specific directories like word_count?
 def k_means_clusterer():
 	if len(sys.argv) != 2:
-		print("Invalid number of command line arguments")
-		print("Usage: ~/k_means_clusterer.sh k")
+		glob.error("17", ["k_means_clusterer", ""])
 		return -1
 	k = sys.argv[1]
 	k = int(k)
@@ -22,7 +20,8 @@ def k_means_clusterer():
 		conn = sqlite3.connect(IIDB)
 		c = conn.cursor()
 	except:
-		print("Error connecting to database {}".format(IIDB))
+		glob.error("3", ["k_means_clusterer", k, IIDB])
+		return -1
 	"""
 	Do we want to let users specify seeds?
 	"""
@@ -37,17 +36,17 @@ def k_means_clusterer():
 	try:
 		seeds = gen_seeds(k, c)
 	except:
-		print("Error generating random seed documents")
+		glob.error("11", ["k_means_clusterer", k])
 		return -1
 	try:
 		inverted_index, docs = build_inverted_index(c)
 	except:
-		print("Error generating inverted index")
+		glob.error("9", ["k_means_clusterer", k])
 		return -1
 	try:
 		centroids = get_seed_vector(seeds, inverted_index, c)
 	except:
-		print("Error generating centroids")
+		glob.error("8", ["k_means_clusterer", k])
 		return -1
 	while True:
 		try:
@@ -55,27 +54,27 @@ def k_means_clusterer():
 			centroid1 = update_centroids(cluster1)
 			cluster2 = get_cluster(centroid1, docs, inverted_index, c)
 		except:
-			print("Error running reclustering algorithm")
+			glob.error("13", ["k_means_clusterer", k])
 			return -1
 		if cluster1 == cluster2:
 			try:
 				write_to_file(cluster2)
 				break
 			except:
-				print("Error saving result to file")
+				glob.error("14", ["k_means_clusterer", k])
 				return -1
 			return 1
 		centroids = update_centroids(cluster2)
 	try:
-		insert_to_db(k, cluster2)
+		glob.insert_to_db("k_means_clusterer", k, "True")
 	except:
-		print("Error saving to history database")
+		glob.error("16", ["k_means_clusterer", k])
 	return 1
 
 def get_N(c):
 	c.execute("SELECT COUNT(DISTINCT doc_id) FROM Posting")
 	N = c.fetchone()[0]
-	return N
+	return float(N)
 
 def get_tokens(c):
 	tokens = []
@@ -264,7 +263,8 @@ def update_centroids(cluster):
 
 def write_to_file(k_clusters):
 	if not os.path.exists(KMEANSFOLDER):
-		os.makedirs(KMEANSFOLDER+"kmeans.txt", "w")
+		os.makedirs(KMEANSFOLDER)
+	kmeans_file = open(KMEANSFOLDER+"k_means.txt", "w")
 	for cluster in k_clusters.keys():
 		output = str(cluster)+":\t"
 		for file in k_clusters[cluster]:
@@ -274,28 +274,18 @@ def write_to_file(k_clusters):
 	kmeans_file.close()
 	return 1
 
-def insert_to_db(k, cluster):
-	output = "True"
-	"""
-	Code to potentially insert to the history database the clusters created by 
-	this function. This could be a really long list though which is why I'm 
-	leaving it out for now.
-	"""
-	"""
-	for c in cluster:
-		output+="("
-		for doc in cluster[c]:
-			output+=doc[1]+", "
-		output = output[:len(output)-2]+"), "
-	output = output[:len(output)-2]
-	"""
-	time = datetime.datetime.now()
-	line = ("k_means_clusterer", k, output, time,)
-	conn = sqlite3.connect(HISTDB)
-	c = conn.cursor()
-	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
-	conn.commit()
-	conn.close()
-	return 1
-
 k_means_clusterer()
+
+"""
+Code to potentially insert to the history database the clusters created by 
+this function. This could be a really long list though which is why I'm 
+leaving it out for now.
+"""
+"""
+for c in cluster:
+	output+="("
+	for doc in cluster[c]:
+		output+=doc[1]+", "
+	output = output[:len(output)-2]+"), "
+output = output[:len(output)-2]
+"""

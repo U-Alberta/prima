@@ -1,51 +1,42 @@
 #!/usr/bin/python
-import datetime
+from cStringIO import StringIO
 import linecache
+import glob
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
-import sqlite3
+#from pdfminer.converter import TextConverter
+#from pdfminer.layout import LAParams
+#from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+#from pdfminer.pdfpage import PDFPage
 import sys
 
-PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
-	"(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, 	"}":0, \
-	"|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0}
 WORDCOUNTFOLDER = "processed/word_count/"
-HISTDB = "processed/hist.db"
 
-# TODO: other file types?
+# TODO: other file types? right now this works on txt, pdf
 def word_count():
 	if len(sys.argv) != 2:
-		print("Invalid number of command line arguments")
-		print("Usage: ~/word_count.sh dir[/item/file/line]")
+		glob.error("17", ["word_count", ""])
 		return -1
 	param = sys.argv[1]
 	param = param.strip("/")
 	depth = len(param.split("/"))
-	"""
-	Depending on the file depth of the path given by the user (to a 
-	collection, item, etc), compute n.
-	"""
 	try:
 		n = get_n(depth, param)
 	except:
-		print("Error counting words")
+		glob.error("4", ["word_count", ""])
 		return -1
-	"""
-	Once n has been sucessfully computed, create a file in the appropriate 
-	place (name_outfile) and save the value of n in there.
-	"""
 	try:
 		output = str(n)
 		write_to_file(output, param)
 	except:
-		print("Error saving result to file")
+		glob.error("14", ["word_count", ""])
 		return -1
 	try:
 		param = sys.argv[1]
-		insert_to_db(param, output)
+		glob.insert_to_db("word_count", param, output)
 	except:
-		print("Error saving to history database")
+		glob.error("16", ["word_count", ""])
 		return -1
 	return 1
 
@@ -58,19 +49,19 @@ def get_n(depth, path):
 		try:
 			n = count_collection(path)
 		except:
-			print("Error counting words in collection {}".format(command))
+			glob.error("5", ["word_count", "", "collection", path])
 			return -1
 	elif depth == 2:
 		try:
 			n = count_item(path)
 		except:
-			print("Error counting words in item {}".format(command))
+			glob.error("5", ["word_count", "", "item", path])
 			return -1
 	elif depth == 3:
 		try:
 			n = count_file(path)
 		except:
-			print("Error counting words in file {}".format(command))
+			glob.error("5", ["word_count", "", "file", path])
 			return -1
 	elif depth == 4:
 		try:
@@ -79,15 +70,14 @@ def get_n(depth, path):
 			newpath = "/".join(tmp)
 			line = linecache.getline(newpath, lineno)
 		except:
-			print("Invalid path given")
-			return -1
+			pass
 		try:
 			n = count_line(line)
 		except:
-			print("Error counting words in line {} of {}".format(lineno, newpath))
+			glob.error("6", ["word_count", "", lineno, newpath])
 			return -1
 	else:
-		print("Invalid path depth")
+		glob.error("18", ["word_count", "", path])
 		return -1
 	return n
 
@@ -110,6 +100,13 @@ def count_item(path):
 
 def count_file(path):
 	n = 0
+	"""
+	This is for handling pdf type files. Still not working great.
+	if len(path.split(".pdf")) == 2:
+		line = glob.convert_pdf_to_txt(path)
+		n+=count_line(line)
+	"""
+	#elif len(path.split(".txt")) == 2:
 	doc = open(path, "r")
 	for line in doc:
 		n+=count_line(line)
@@ -126,10 +123,10 @@ def count_line(line):
 		sentence_list = sent_tokenize(line)
 		for sentence in sentence_list:
 			for term in word_tokenize(sentence):
-				if term[0] not in PUNC.keys():
+				if term[0] not in glob.PUNC.keys():
 					n+=1
 	except:
-		print("Error counting words in line {}, moving on".format(line))
+		pass
 	return n
 
 """
@@ -161,18 +158,5 @@ def name_outfile(path):
 	if not os.path.exists(WORDCOUNTFOLDER):
 		os.makedirs(WORDCOUNTFOLDER)
 	return outfile
-
-"""
-Insert the command used, output, and time run to the history database.
-"""
-def insert_to_db(param, output):
-	time = datetime.datetime.now()
-	line = ("word_count", param, output, time,)
-	conn = sqlite3.connect(HISTDB)
-	c = conn.cursor()
-	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
-	conn.commit()
-	conn.close()
-	return 1
 
 word_count()

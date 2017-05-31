@@ -1,50 +1,45 @@
 #!/usr/bin/python
 import ctypes
-import datetime
+import glob
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
 import sqlite3
 import sys
 
-PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
-	"(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, 	"}":0, \
-	"|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0}
 """
 Should we let the user specify this? I think we could have 3 as a default and 
 if the user wants to change it they can in the arguments.
 """
-SHINGLES = 3
-SHINGLEDB = "processed/shingles.db"
-HISTDB = "processed/hist.db"
 MINHASHFOLDER = "processed/min_hash"
+SHINGLEDB = "processed/shingles.db"
+SHINGLES = 3
 
 def min_hash():
 	if len(sys.argv) != 1:
-		print("Invalid number of command line arguments")
-		print("Usage: ~/min_hash.sh")
+		glob.error("17", ["min_hash", ""])
 		return -1
 	try:
 		shingles = get_shingles()
 	except:
-		print("Error generating {}-shingles".format(SHINGLES))
+		glob.error("10", ["min_hash", "", SHINGLES])
 		return -1
 	try:
 		insert_shingles(shingles)
 	except:
-		print("Error saving shingles to database {}".format(SHINGLEDB))
+		glob.error("15", ["min_hash", "", SHINGLESDB])
 		return -1
 	try:
 		if not os.path.exists(MINHASHFOLDER):
 			os.makedirs(MINHASHFOLDER)
 		call_c()
 	except:
-		print("Error calling c functions for hashing")
+		glob.error("2", ["min_hash", ""])
 		return -1
 	try:
-		insert_to_db()
+		glob.insert_to_db("min_hash", "", "True")
 	except:
-		print("Error saving to history database {}".format(HISTDB))
+		glob.error("16", ["min_hash", ""])
 		return -1
 	return 1
 
@@ -69,7 +64,7 @@ def get_shingles():
 					sentence_list = sent_tokenize(line.decode("utf-8"))
 					for sentence in sentence_list:
 						for term in word_tokenize(sentence):
-							if term[0] not in PUNC.keys():
+							if term[0] not in glob.PUNC.keys():
 								try:
 									term = term.lower()
 									for i in range(0, SHINGLES):
@@ -83,9 +78,9 @@ def get_shingles():
 											shingle[i] = shingle[i+1]
 										shingle[-1] = ""
 								except:
-									print("Error with term {}".format(term))
+									pass
 			except:
-				print("Error opening document {}".format(docname))
+				glob.error("12", ["min_hash", "", docname])
 	return s
 
 """
@@ -95,7 +90,8 @@ Save the k-shingles to a database to be accessed in the c program
 def insert_shingles(shingles):
 	conn = sqlite3.connect(SHINGLEDB)
 	c = conn.cursor()
-	c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Shingle'")
+	c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name="\
+		"'Shingle'")
 	if c.fetchone() != None:
 		c.execute("DROP TABLE Shingle")
 		conn.commit()
@@ -116,19 +112,6 @@ def call_c():
 	path = os.path.join(temp, "minHash.so")
 	testlib = ctypes.CDLL(path)
 	testlib.callMinHash()
-	return 1
-
-"""
-Insert the command used, output, and time run to the history database.
-"""
-def insert_to_db():
-	time = datetime.datetime.now()
-	line = ("min_hash", "", True, time,)
-	conn = sqlite3.connect(HISTDB)
-	c = conn.cursor()
-	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
-	conn.commit()
-	conn.close()
 	return 1
 
 min_hash()

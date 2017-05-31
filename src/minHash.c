@@ -14,7 +14,7 @@ int minHash() {
   int* hashNums = genRandom();
   rc = sqlite3_open(db_name, &db);
   if (rc) {
-    fprintf(stderr, "Can't open database %s\n", sqlite3_errmsg(db));
+    fprintf(stderr, "Error opening database %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
     return -1;
   }

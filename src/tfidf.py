@@ -1,49 +1,52 @@
 #!/usr/bin/python
-import datetime
+from cStringIO import StringIO
 from gensim import corpora, models
+import glob
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
+#from pdfminer.converter import TextConverter
+#from pdfminer.layout import LAParams
+#from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+#from pdfminer.pdfpage import PDFPage
 import sqlite3
 import sys
 
-PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
-	"(":0, ")":0, "-":0, "_":0, "=":0, "+":0, "[":0, "]":0, "{":0, 	"}":0, \
-	"|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0}
-TFIDFFOLDER = "processed/tfidf"
-HISTDB = "processed/hist.db"
+DFLINEONE = "term:\tdf\n\n"
+IDFLINEONE = "term, document:\ttf-idf\n\n"
 IIDB = "processed/inverted_index.db"
+TFIDFFOLDER = "processed/tfidf"
+TFLINEONE = "term, document:\ttf\n\n"
 
 # TODO: allow to work on specific directories like word_count?
 def tfidf():
 	if len(sys.argv) != 1:
-		print("Invalid number of command line arguments")
-		print("Usage: ~/tfidf.sh")
+		glob.error("17", ["tfidf", ""])
 		return -1
 	try:
 		texts, documents = build_texts()
 	except:
-		print("Error parsing through documents in collection")
+		glob.error("0", ["tfidf", ""])
 		return -1
 	try:
 		tfidf, raw_tf, dictionary = get_tfidf(texts)
 	except:
-		print("Error calculating tfidf values")
+		glob.error("1", ["tfidf", ""])
 		return -1
 	try:
 		tokens, postings = write_to_files(tfidf, raw_tf, dictionary, documents)
 	except:
-		print("Error saving result to files")
+		glob.error("14", ["tfidf", ""])
 		return -1
 	try:
 		insert_inverted_index(tokens, postings)
 	except:
-		print("Error saving to inverted index database {}".format(IIDB))
+		glob.error("15", ["tfidf", ""], IIDB)
 		return -1
 	try:
-		insert_to_db()
+		glob.insert_to_db("tfidf", "", "True")
 	except:
-		print("Error saving to history database {}".format(HISTDB))
+		glob.error("16", ["tfidf", ""])
 		return -1
 	return 1
 
@@ -60,15 +63,23 @@ def build_texts():
 		for file in sorted(os.listdir("source/"+item)):
 			fileid = file.split(".")[0]
 			docid = "source/"+itemid+"/"+fileid
+			path = "source/"+item+"/"+file
 			try:
-				doc = open("source/"+item+"/"+file, "r")
-				documents.append(docid)sw
+				"""
+				This is for handling pdf type files. Still not working great.
+				if len(path.split(".pdf")) == 2:
+					line = glob.convert_pdf_to_txt(path)
+					doc = [line]
+				"""
+				#elif len(path.split(".txt")) == 2:
+				doc = open(path, "r")
+				documents.append(docid)
 				doc_text = []
 				for line in doc:
 					sentence_list = sent_tokenize(line.decode("utf-8"))
 					for sentence in sentence_list:
 						for term in word_tokenize(sentence):
-							if term[0] not in PUNC.keys():
+							if term[0] not in glob.PUNC.keys():
 								try:
 									term = term.lower()
 									doc_text.append(term)
@@ -79,7 +90,7 @@ def build_texts():
 									pass
 				texts.append(doc_text)
 			except:
-				print("Error opening document {}".format(docid))
+				glob.error("12", ["tfidf", ""], docid)
 	return texts, documents
 
 """
@@ -103,11 +114,11 @@ def write_to_files(tfidf, raw_tf, dictionary, documents):
 	if not os.path.exists(TFIDFFOLDER):
 		os.makedirs(TFIDFFOLDER)
 	idf_file = open(TFIDFFOLDER+"/tfidf.txt", "w")
-	idf_file.write("term, document:\ttf-idf\n\n")
+	idf_file.write(IDFLINEONE)
 	tf_file = open(TFIDFFOLDER+"/tf.txt", "w")
-	tf_file.write("term, document:\ttf\n\n")
+	tf_file.write(TFLINEONE)
 	df_file = open(TFIDFFOLDER+"/df.txt", "w")
-	df_file.write("term:\tdf\n\n")
+	df_file.write(DFLINEONE)
 	i = 0
 	for doc_tfidf in tfidf:
 		doc_tf = raw_tf[i]
@@ -147,23 +158,11 @@ def insert_inverted_index(tokens, postings):
 	conn = sqlite3.connect(IIDB)
 	c = conn.cursor()
 	c.execute("CREATE TABLE Token(token text, df int, token_id int PRIMARY KEY)")
-	c.execute("CREATE TABLE Posting(token_id int, doc_id int, tf int, tf_idf float, FOREIGN KEY(token_id) REFERENCES Token(token_id))")
+	c.execute("CREATE TABLE Posting(token_id int, doc_id int, tf int, tf_idf "\
+		"float, FOREIGN KEY(token_id) REFERENCES Token(token_id))")
 	conn.commit()
 	c.executemany("INSERT INTO Token VALUES (?,?,?)", tokens)
 	c.executemany("INSERT INTO Posting VALUES (?,?,?,?)", postings)
-	conn.commit()
-	conn.close()
-	return 1
-
-"""
-Insert the command used, output, and time run to the history database.
-"""
-def insert_to_db():
-	time = datetime.datetime.now()
-	line = ("tfidf", "", "True", time,)
-	conn = sqlite3.connect(HISTDB)
-	c = conn.cursor()
-	c.execute("INSERT INTO History VALUES(?,?,?,?)", line)
 	conn.commit()
 	conn.close()
 	return 1
