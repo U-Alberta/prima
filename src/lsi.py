@@ -12,22 +12,22 @@ def lsi():
 		return -1
 	k = int(sys.argv[1])
 	try:
-		texts, documents = glob.build_texts()
+		texts, documents = glob.build_texts("lsi")
 	except:
 		glob.error("0", ["lsi", k])
 		return -1
-	try:
-		ck = get_lsi(texts, k)
-	except:
-		glob.error("7", ["lsi", k])
-		return -1
+	#try:
+	ck = get_lsi(texts, k)
+	#except:
+		#glob.error("7", ["lsi", k])
+		#return -1
 	try:
 		glob.write_to_file(ck, documents, LSIFOLDER, "lsi.csv")
 	except:
-		glob.error("15", ["lsi", k])
+		glob.error("14", ["lsi", k])
 		return -1
 	try:
-		glob.insert_to_db("lsi", k, "True")
+		glob.insert_to_db("lsi", k, "Finished")
 	except:
 		glob.error("16", ["lsi", k])
 		return -1

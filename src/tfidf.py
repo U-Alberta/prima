@@ -1,8 +1,6 @@
 #!/usr/bin/python
 from gensim import corpora, models
 import glob
-import nltk.tokenize
-from nltk.tokenize import sent_tokenize, word_tokenize
 import os
 import sqlite3
 import sys
@@ -19,7 +17,7 @@ def tfidf():
 		glob.error("17", ["tfidf", ""])
 		return -1
 	try:
-		texts, documents = build_texts()
+		texts, documents = glob.build_texts("tfidf")
 	except:
 		glob.error("0", ["tfidf", ""])
 		return -1
@@ -39,54 +37,11 @@ def tfidf():
 		glob.error("15", ["tfidf", ""], IIDB)
 		return -1
 	try:
-		glob.insert_to_db("tfidf", "", "True")
+		glob.insert_to_db("tfidf", "", "Finished")
 	except:
 		glob.error("16", ["tfidf", ""])
 		return -1
 	return 1
-
-"""
-Parse through all the documents in the corpus, generating a list of words and 
-documents.
-"""
-def build_texts():
-	texts = []
-	documents = []
-	raw_df = {}
-	for item in sorted(os.listdir("source")):
-		itemid = "".join(item.split("_"))
-		for file in sorted(os.listdir("source/"+item)):
-			fileid = file.split(".")[0]
-			docid = "source/"+itemid+"/"+fileid
-			path = "source/"+item+"/"+file
-			try:
-				if len(path.split(".pdf")) == 2:
-					line = glob.convert_pdf_to_txt(path)
-					doc = [line]
-				elif len(path.split(".txt")) == 2:
-					doc = open(path, "r")
-				else:
-					print("Incompatible file type {}".format(file))
-					pass
-				documents.append(docid)
-				doc_text = []
-				for line in doc:
-					sentence_list = sent_tokenize(line.decode("utf-8"))
-					for sentence in sentence_list:
-						for term in word_tokenize(sentence):
-							if term[0] not in glob.PUNC.keys():
-								try:
-									term = str(term.lower())
-									doc_text.append(term)
-									if term not in raw_df.keys():
-										raw_df[term] = 0
-									raw_df[term]+=1
-								except:
-									pass
-				texts.append(doc_text)
-			except:
-				glob.error("12", ["tfidf", ""], docid)
-	return texts, documents
 
 """
 Use the gensim library to calculate tfidf.

@@ -20,38 +20,99 @@ PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
   "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0, \
   "0":0, "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
 HISTDB = "processed/hist.db"
+"""
+Should we let the user specify this? I think we could have 3 as a default and 
+if the user wants to change it they can in the arguments.
+"""
+SHINGLES = 3
 
 """
 Parse through all the documents in the corpus, generating a list of words and 
 documents.
-Called by lda.py, and lsi.py.
+Called by lda.py, lsi.py, min_hash.py, and tfidf.py.
 """
-def build_texts():
+def build_texts(mode):
   texts = []
   documents = []
+  s = []
+  raw_df = {}
+  doccounter = -1
   for item in sorted(os.listdir("source")):
     itemid = "".join(item.split("_"))
     for file in sorted(os.listdir("source/"+item)):
       fileid = file.split(".")[0]
       docid = "source/"+itemid+"/"+fileid
+      path = "source/"+item+"/"+file
       try:
-        doc = open("source/"+item+"/"+file, "r")
+        if len(path.split(".pdf")) == 2:
+          line = convert_pdf_to_txt(path)
+          doc = [line]
+          doccounter+=1
+        elif len(path.split(".txt")) == 2:
+          doc = open("source/"+item+"/"+file, "r")
+          doccounter+=1
+        else:
+          print("Incompatible file type {}".format(file))
+          pass
         documents.append(docid)
         doc_text = []
+        if mode == "min_hash": shingle = prep_shingle()
         for line in doc:
           sentence_list = sent_tokenize(line.decode("utf-8"))
           for sentence in sentence_list:
             for term in word_tokenize(sentence):
               if term[0] not in PUNC.keys():
                 try:
-                  term = term.lower()
+                  term = str(term.lower())
+                  if mode == "min_hash":
+                    shingle, s = min_hash_subfxn(doccounter, docid, s, shingle, term)
                   doc_text.append(term)
                 except:
                   pass
         texts.append(doc_text)
       except:
-        print("Error opening document {}".format(docid))
-  return texts, documents
+        error("12", [mode, ""], docid)
+  if mode == "min_hash": return s
+  else: return texts, documents
+
+"""
+gen_shingles, prep_shingles, and min_hash_subfxn are all used by min_hash. 
+gen_shingles is called by min_hash. prep_shingles and min_hash_subfxn are 
+called in build_texts only when mode="min_hash" to generate shingles rather 
+than build a list of the text and documents.
+"""
+def gen_shingles():
+  shingles =  build_texts("min_hash")
+  return shingles
+
+def prep_shingle():
+  shingle = []
+  for i in range(0, SHINGLES):
+    shingle.append("")
+  return shingle
+
+def min_hash_subfxn(doccounter, docid, s, shingle, term):
+  for i in range(0, SHINGLES):
+    if shingle[i] == "":
+      shingle[i] = term
+      break
+  if shingle[-1] != "":
+    shingle_str = " ".join(shingle)
+    s.append((doccounter, docid, shingle_str))
+    for i in range(0, SHINGLES-1):
+      shingle[i] = shingle[i+1]
+    shingle[-1] = ""
+  return shingle, s
+
+"""
+Write the newly created matrix ck to a csv file in the processed/lsi folder.
+Called by lsi.py, and lda.py.
+"""
+def write_to_file(ck, docs, folder, file):
+  df = pd.DataFrame(ck, columns=docs)
+  if not os.path.exists(folder):
+    os.makedirs(folder)
+  df.to_csv(folder+file)
 
 """
 Converts pdf text to a single string based on code here:
@@ -80,6 +141,7 @@ def convert_pdf_to_txt(path):
   return text
 
 """
+I list of all the possible errors that can be thrown by all the functions.
 params = [command, command line parameters, ..]
 """
 def error(code, params, val1="", val2=""):
@@ -120,13 +182,3 @@ def insert_to_db(command, param, output):
   conn.commit()
   conn.close()
   return 1
-
-"""
-Write the newly created matrix ck to a csv file in the processed/lsi folder.
-Called by lsi.py, and lda.py.
-"""
-def write_to_file(ck, docs, folder, file):
-  df = pd.DataFrame(ck, columns=docs)
-  if not os.path.exists(folder):
-    os.makedirs(folder)
-  df.to_csv(folder+file)

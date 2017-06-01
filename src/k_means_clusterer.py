@@ -66,7 +66,7 @@ def k_means_clusterer():
 			return 1
 		centroids = update_centroids(cluster2)
 	try:
-		glob.insert_to_db("k_means_clusterer", k, "True")
+		glob.insert_to_db("k_means_clusterer", k, "Finished")
 	except:
 		glob.error("16", ["k_means_clusterer", k])
 	return 1

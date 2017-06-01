@@ -12,7 +12,7 @@ def lda():
 		return -1
 	k = int(sys.argv[1])
 	try:
-		texts, documents = glob.build_texts()
+		texts, documents = glob.build_texts("lda")
 	except:
 		glob.error("0", ["lda", k])
 		return -1
@@ -27,7 +27,7 @@ def lda():
 		glob.error("14", ["lda", k])
 		return -1
 	try:
-		glob.insert_to_db("lda", k, "True")
+		glob.insert_to_db("lda", k, "Finished")
 	except:
 		glob.error("16", ["lda", k])
 		return -1
