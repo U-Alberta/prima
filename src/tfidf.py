@@ -1,14 +1,9 @@
 #!/usr/bin/python
-from cStringIO import StringIO
 from gensim import corpora, models
 import glob
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
-#from pdfminer.converter import TextConverter
-#from pdfminer.layout import LAParams
-#from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-#from pdfminer.pdfpage import PDFPage
 import sqlite3
 import sys
 
@@ -65,14 +60,14 @@ def build_texts():
 			docid = "source/"+itemid+"/"+fileid
 			path = "source/"+item+"/"+file
 			try:
-				"""
-				This is for handling pdf type files. Still not working great.
 				if len(path.split(".pdf")) == 2:
 					line = glob.convert_pdf_to_txt(path)
 					doc = [line]
-				"""
-				#elif len(path.split(".txt")) == 2:
-				doc = open(path, "r")
+				elif len(path.split(".txt")) == 2:
+					doc = open(path, "r")
+				else:
+					print("Incompatible file type {}".format(file))
+					pass
 				documents.append(docid)
 				doc_text = []
 				for line in doc:
@@ -81,7 +76,7 @@ def build_texts():
 						for term in word_tokenize(sentence):
 							if term[0] not in glob.PUNC.keys():
 								try:
-									term = term.lower()
+									term = str(term.lower())
 									doc_text.append(term)
 									if term not in raw_df.keys():
 										raw_df[term] = 0

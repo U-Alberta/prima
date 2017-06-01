@@ -1,14 +1,9 @@
 #!/usr/bin/python
-from cStringIO import StringIO
 import linecache
 import glob
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
-#from pdfminer.converter import TextConverter
-#from pdfminer.layout import LAParams
-#from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-#from pdfminer.pdfpage import PDFPage
 import sys
 
 WORDCOUNTFOLDER = "processed/word_count/"
@@ -49,19 +44,19 @@ def get_n(depth, path):
 		try:
 			n = count_collection(path)
 		except:
-			glob.error("5", ["word_count", "", "collection", path])
+			glob.error("5", ["word_count", ""], "collection", path)
 			return -1
 	elif depth == 2:
 		try:
 			n = count_item(path)
 		except:
-			glob.error("5", ["word_count", "", "item", path])
+			glob.error("5", ["word_count", ""], "item", path)
 			return -1
 	elif depth == 3:
 		try:
 			n = count_file(path)
 		except:
-			glob.error("5", ["word_count", "", "file", path])
+			glob.error("5", ["word_count", ""], "file", path)
 			return -1
 	elif depth == 4:
 		try:
@@ -100,17 +95,17 @@ def count_item(path):
 
 def count_file(path):
 	n = 0
-	"""
-	This is for handling pdf type files. Still not working great.
 	if len(path.split(".pdf")) == 2:
 		line = glob.convert_pdf_to_txt(path)
 		n+=count_line(line)
-	"""
-	#elif len(path.split(".txt")) == 2:
-	doc = open(path, "r")
-	for line in doc:
-		n+=count_line(line)
-	doc.close()
+	elif len(path.split(".txt")) == 2:
+		doc = open(path, "r")
+		for line in doc:
+			n+=count_line(line)
+		doc.close()
+	else:
+		print("Incompatible file type {}".format(file))
+		pass
 	return n
 
 """

@@ -3,11 +3,16 @@
 This file holds functions and variables used in multiple files to reduce 
 redundancies in the code.
 """
+from cStringIO import StringIO
 import datetime
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
 import pandas as pd
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfpage import PDFPage
 import sqlite3
 
 PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
