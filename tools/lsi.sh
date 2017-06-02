@@ -1,2 +1,2 @@
 #!/bin/sh
-lsi.py $1
+lsi.py "$@"

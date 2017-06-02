@@ -7,7 +7,7 @@ import os
 import sqlite3
 import sys
 
-MINHASHFOLDER = "processed/min_hash"
+MINHASHFOLDER = "processed/min_hash/"
 SHINGLEDB = "processed/shingles.db"
 
 def min_hash():

@@ -147,7 +147,7 @@ params = [command, command line parameters, ..]
 def error(code, params, val1="", val2=""):
   code_map = {
     "0":"Error building text",
-    "1":"Error calculating tfidf values",
+    "1":"Error calculating {} values".format(params[0]),
     "2":"Error calling c functions for hashing",
     "3":"Error connecting to database {}".format(val1),
     "4":"Error counting words",

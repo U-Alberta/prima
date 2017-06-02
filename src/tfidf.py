@@ -8,7 +8,7 @@ import sys
 DFLINEONE = "term:\tdf\n\n"
 IDFLINEONE = "term, document:\ttf-idf\n\n"
 IIDB = "processed/inverted_index.db"
-TFIDFFOLDER = "processed/tfidf"
+TFIDFFOLDER = "processed/tfidf/"
 TFLINEONE = "term, document:\ttf\n\n"
 
 # TODO: allow to work on specific directories like word_count?
@@ -63,11 +63,11 @@ def write_to_files(tfidf, raw_tf, dictionary, documents):
 	raw_df = {}
 	if not os.path.exists(TFIDFFOLDER):
 		os.makedirs(TFIDFFOLDER)
-	idf_file = open(TFIDFFOLDER+"/tfidf.txt", "w")
+	idf_file = open(TFIDFFOLDER+"tfidf.txt", "w")
 	idf_file.write(IDFLINEONE)
-	tf_file = open(TFIDFFOLDER+"/tf.txt", "w")
+	tf_file = open(TFIDFFOLDER+"tf.txt", "w")
 	tf_file.write(TFLINEONE)
-	df_file = open(TFIDFFOLDER+"/df.txt", "w")
+	df_file = open(TFIDFFOLDER+"df.txt", "w")
 	df_file.write(DFLINEONE)
 	i = 0
 	for doc_tfidf in tfidf:

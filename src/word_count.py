@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import glob
+import nltk.tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
 import os
 import sys
 
