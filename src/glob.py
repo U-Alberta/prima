@@ -3,6 +3,7 @@
 This file holds functions and variables used in multiple files to reduce 
 redundancies in the code.
 """
+from gensim import corpora, models
 from cStringIO import StringIO
 import datetime
 import nltk.tokenize
@@ -51,6 +52,8 @@ def build_texts(mode):
         elif len(path.split(".txt")) == 2:
           doc = open("source/"+item+"/"+file, "r")
           doccounter+=1
+        #elif path[len(path)-8:] == "_marc.xml":
+        	#doc = read_marc(path)
         else:
           print("Incompatible file type {}".format(file))
           pass
@@ -74,6 +77,8 @@ def build_texts(mode):
         error("12", [mode, ""], docid)
   if mode == "min_hash": return s
   else: return texts, documents
+
+#def read_marc(path):
 
 """
 gen_shingles, prep_shingles, and min_hash_subfxn are all used by min_hash. 
@@ -113,6 +118,17 @@ def write_to_file(ck, docs, folder, file):
   if not os.path.exists(folder):
     os.makedirs(folder)
   df.to_csv(folder+file)
+
+"""
+Use the gensim library to calculate tfidf.
+Called by k_means_clusterer.py, and tfidf.py
+"""
+def get_tfidf(texts):
+	dictionary = corpora.Dictionary(texts)
+	corpus = [dictionary.doc2bow(text) for text in texts]
+	tfidf = models.TfidfModel(corpus)
+	corpus_tfidf = tfidf[corpus]
+	return corpus_tfidf, corpus, dictionary
 
 """
 Converts pdf text to a single string based on code here:

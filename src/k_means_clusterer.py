@@ -9,7 +9,6 @@ import sys
 KMEANSFOLDER = "processed/k_means/"
 IIDB = "processed/inverted_index.db"
 
-# TODO: allow to work on specific directories like word_count?
 def k_means_clusterer():
 	if len(sys.argv) != 2:
 		glob.error("17", ["k_means_clusterer", ""])
@@ -34,25 +33,35 @@ def k_means_clusterer():
 	else: 
 	"""
 	try:
-		seeds = gen_seeds(k, c)
+		texts, documents = glob.build_texts("k_means_clusterer")
+	except:
+		glob.error("0", ["k_means_clusterer", ""])
+		return -1
+	try:
+		tfidf, raw_tf, dictionary = glob.get_tfidf(texts)
+	except:
+		glob.error("1", ["k_means_clusterer", ""])
+		return -1
+	try:
+		seeds = gen_seeds(k, documents)
 	except:
 		glob.error("11", ["k_means_clusterer", k])
 		return -1
 	try:
-		inverted_index, docs = build_inverted_index(c)
+		inverted_index = build_inverted_index(tfidf, raw_tf, dictionary, documents)
 	except:
 		glob.error("9", ["k_means_clusterer", k])
-		return -1
+		return -1	
 	try:
-		centroids = get_seed_vector(seeds, inverted_index, c)
+		centroids = get_seed_vector(seeds, inverted_index, dictionary, documents, c)
 	except:
 		glob.error("8", ["k_means_clusterer", k])
 		return -1
 	while True:
 		try:
-			cluster1 = get_cluster(centroids, docs, inverted_index, c)
+			cluster1 = get_cluster(centroids, documents, inverted_index, dictionary, c)
 			centroid1 = update_centroids(cluster1)
-			cluster2 = get_cluster(centroid1, docs, inverted_index, c)
+			cluster2 = get_cluster(centroid1, documents, inverted_index, dictionary, c)
 		except:
 			glob.error("13", ["k_means_clusterer", k])
 			return -1
@@ -71,85 +80,53 @@ def k_means_clusterer():
 		glob.error("16", ["k_means_clusterer", k])
 	return 1
 
-def get_N(c):
-	c.execute("SELECT COUNT(DISTINCT doc_id) FROM Posting")
-	N = c.fetchone()[0]
-	return float(N)
-
-def get_tokens(c):
-	tokens = []
-	c.execute("SELECT DISTINCT token FROM Token")
-	for row in c.fetchall():
-		tokens.append(row[0])
-	return tokens
-
 """
 If no seeds are given, this randomly selects k seeds from the database.
 """
-def gen_seeds(k, c):
+def gen_seeds(k, docs):
 	seeds = []
-	docs = []
-	c.execute("SELECT DISTINCT doc_id FROM Posting")
-	for row in c.fetchall():
-		docs.append(row[0])
 	while k > 0:
 		d = random.choice(docs)
-		docs.remove(d)
-		seeds.append(d)
+		if d not in seeds:
+			seeds.append(d)
 		k-=1
 	return seeds
 
 """
-Builds an inverted index from the db so we don't have to repeatedly query the 
-database to get document vectors.
+Uses the output from the glob commands above to build an inverted index.
 """
-def build_inverted_index(c):
-	doc_id = []
-	c.execute("SELECT DISTINCT doc_id FROM Posting ORDER BY doc_id")
-	for row in c.fetchall():
-		doc_id.append(row[0])
+def build_inverted_index(tfidf, raw_tf, dictionary, documents):
 	inverted_index = {}
-	for d in doc_id:
-		token_id = []
-		doc = (d,)
-		c.execute("SELECT DISTINCT token_id FROM Posting WHERE doc_id=?", doc)
-		for row in c.fetchall():
-			token_id.append(row[0])
-		for t_id in token_id:
-			variables = (d,t_id)
-			c.execute("SELECT t.token, p.tf, t.df FROM Posting p, Token t WHERE p.doc_id=? AND t.token_id=? AND t.token_id=p.token_id", variables)
-			for row in c.fetchall():
-				token = row[0]
-				tf = row[1]
-				df = row[2]
-				if token in inverted_index.keys():
-					inverted_index[token]["postings"][d] = tf
-				else:
-					inverted_index[token] = {"df":df, "postings":{d:tf}}
-	return inverted_index, doc_id
+	for i in range(0, len(documents)):
+		doc = documents[i]
+		postings = raw_tf[i]
+		for j in range(0, len(postings)):
+			token = dictionary[postings[j][0]]
+			if token not in inverted_index.keys():
+				inverted_index[token] = {"postings":{doc:(postings[j][1], tfidf[i][j][1])}}
+			else:
+				inverted_index[token]["postings"][doc] = (postings[j][1], tfidf[i][j][1])
+	return inverted_index
 
 """
 Generates the vectors (ltc) for the seed documents to make initial centroids.
 """
-def get_seed_vector(seeds, inverted_index, c):
+def get_seed_vector(seeds, inverted_index, tokens, documents, c):
 	"""
 	seed vector uses ltc weighting: tf=1+log(tf t,d), df=log(N/df t), 
 	normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
 	"""
 	centroids = []
-	N = get_N(c)
-	tokens = get_tokens(c)
+	N = len(documents)
 	c_id = 0
 	for s in seeds:
 		vector = []
-		for t in tokens:
-			tf = 0
+		for i in range(0, len(tokens)):
+			tfidf = 0
+			t = tokens[i]
 			if s in inverted_index[t]["postings"].keys():
-				tf = inverted_index[t]["postings"][s]
-				tf = 1+math.log10(tf)
-			df = inverted_index[t]["df"]
-			idf = math.log10(N/df)
-			vector.append(tf*idf)
+				tfidf = inverted_index[t]["postings"][s][1]
+			vector.append(tfidf)
 		weights = 0
 		for v in vector:
 			weights+=v**2
@@ -167,17 +144,17 @@ def get_seed_vector(seeds, inverted_index, c):
 """
 Calculates a document vector based on lnc values.
 """
-def get_document_vector(inverted_index, d, c):
+def get_document_vector(inverted_index, tokens, d, c):
 	"""
 	doc vector uses lnc: tf=1+log(tf t, d), df=1, 
 	normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
 	"""
-	tokens = get_tokens(c)
 	d_vector = []
-	for t in tokens:
+	for i in range(0, len(tokens)):
+		t = tokens[i]
 		tf = 0
 		if d in inverted_index[t]["postings"].keys():
-			tf = inverted_index[t]["postings"][d]
+			tf = inverted_index[t]["postings"][d][0]
 		d_vector.append(tf)
 	weights = 0
 	for v in d_vector:
@@ -224,10 +201,10 @@ def sd_distance(s, d):
 """
 Assigns every document in the collection to the closest cluster to it.
 """
-def get_cluster(centroids, docs, inverted_index, c):
+def get_cluster(centroids, docs, inverted_index, tokens, c):
 	temp = []
 	for d in docs:
-		d_vector = get_document_vector(inverted_index, d, c)
+		d_vector = get_document_vector(inverted_index, tokens, d, c)
 		distances = []
 		for s in centroids:
 			s_vector = s[0]
@@ -264,28 +241,14 @@ def update_centroids(cluster):
 def write_to_file(k_clusters):
 	if not os.path.exists(KMEANSFOLDER):
 		os.makedirs(KMEANSFOLDER)
-	kmeans_file = open(KMEANSFOLDER+"k_means.txt", "w")
+	kmeans_file = open(KMEANSFOLDER+"k_means.csv", "w")
 	for cluster in k_clusters.keys():
-		output = str(cluster)+":\t"
+		output = ""
 		for file in k_clusters[cluster]:
 			output+=str(file[1])+", "
-		output+="\n"
+		output = output[:len(output)-2]+"\n"
 		kmeans_file.write(output)
 	kmeans_file.close()
 	return 1
 
 k_means_clusterer()
-
-"""
-Code to potentially insert to the history database the clusters created by 
-this function. This could be a really long list though which is why I'm 
-leaving it out for now.
-"""
-"""
-for c in cluster:
-	output+="("
-	for doc in cluster[c]:
-		output+=doc[1]+", "
-	output = output[:len(output)-2]+"), "
-output = output[:len(output)-2]
-"""

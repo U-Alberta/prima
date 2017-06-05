@@ -1,2 +1,2 @@
 #!/bin/sh
-tfidf.py
+tfidf.py $1

@@ -56,10 +56,10 @@ documents?
 def write_to_file(scores, docs, q):
   if not os.path.exists(BM25FOLDER):
     os.makedirs(BM25FOLDER)
-  bm25_file = open(BM25FOLDER+"bm25.txt", "a+")
-  output = "query: "+ " ".join(q)+"\n"
+  bm25_file = open(BM25FOLDER+"bm25.csv", "a+")
+  output = "query, "+ " ".join(q)+"\n"
   for i in range(0, len(docs)):
-  	output+=docs[i]+": "+str(scores[i])+"\n"
+  	output+=docs[i]+", "+str(scores[i])+"\n"
   bm25_file.write(output)
   bm25_file.close()
   return 1

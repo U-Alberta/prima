@@ -40,7 +40,7 @@ def count_collection():
 		tup = count_item(PATH+"/"+doc_path)
 		n+=tup[0]
 		output+=tup[1]
-	return PATH+": "+str(n)+"\n"+output
+	return PATH+", "+str(n)+"\n"+output
 
 def count_item(path):
 	output = ""
@@ -49,7 +49,7 @@ def count_item(path):
 		tup = count_file(path+"/"+doc_path)
 		n+=tup[0]
 		output+=tup[1]
-	return n, path+": "+str(n)+"\n"+output
+	return n, path+", "+str(n)+"\n"+output
 
 def count_file(path):
 	n = 0
@@ -64,7 +64,7 @@ def count_file(path):
 	else:
 		print("Incompatible file type {}".format(file))
 		pass
-	return n, path+": "+str(n)+"\n"
+	return n, path+", "+str(n)+"\n"
 
 """
 When count_line is called, tokenize the line, remove symbols and count the 
@@ -86,7 +86,10 @@ def count_line(line):
 Write the word count values to the file processed/word_count/word_count.txt.
 """
 def write_to_file(output):
-	outfile = open(WORDCOUNTFOLDER+"/word_count.txt", "w")
+	if not os.path.exists(WORDCOUNTFOLDER):
+		os.makedirs(WORDCOUNTFOLDER)
+	outfile = open(WORDCOUNTFOLDER+"/word_count.csv", "w")
+	outfile.write("document/directory, count\n")
 	outfile.write(output)
 	outfile.close()
 

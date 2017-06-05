@@ -41,7 +41,7 @@ def get_lsi(texts, k):
 	corpus = [dictionary.doc2bow(text) for text in texts]
 	tfidf = models.TfidfModel(corpus)
 	corpus_tfidf = tfidf[corpus]
-	lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=k)
+	lsi = models.LsiModel(corpus, id2word=dictionary, num_topics=k)
 	corpus_lsi = lsi[corpus_tfidf]
 	ck = []
 	for i in range(0, len(corpus_lsi[0])):
