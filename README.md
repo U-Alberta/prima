@@ -3,11 +3,11 @@ Personal Research Management for the IA
 
 ## Installation
 1. Clone this repository to somewhere in your file system.
-2. This project uses the gensim library for some of the tools. You will need to download it from the [website](https://radimrehurek.com/gensim/)
+2. This project uses the gensim library for some of the tools. You will need to download it from the [website](https://radimrehurek.com/gensim/install.html)
 3. Setup a path to /prima/src and run the following, replacing ~/path/to with your personal path to the prima repository
   >
-    $ chmod u+x ~/path/to/prima/src/*.py
-    $ chmod u+x ~/path/to/prima/tools/*.sh
+    $ chmod u+x ~/path/to/prima/src/*
+    $ chmod u+x ~/path/to/prima/tools/*
 4. To create the appropriate directories for your file system run the following commands where **project_name** is the desired file name for a collection to be saved in
   >
     $ ~/path/to/prima/tools/init_workspace.sh
@@ -25,7 +25,7 @@ Personal Research Management for the IA
 7. For every new collection to be created, repeat step 3 lines 3-5 and step 4 with the new collection before using any tools.
 
 ## Tools
-Current available tools included in the prima are:
+Current available tools included in the prima and basic examples are below:
 1. BM25
 
         $ ~/path/to/prima/tools/bm25.sh "prima query bm25"
@@ -49,4 +49,4 @@ Current available tools included in the prima are:
 
         $ ~/path/to/prima/tools/word_count.sh
 
-More information on how exactly to use these can be found in the [wiki.](https://github.com/U-Alberta/prima/wiki/Tools)
+More detail on how exactly to use these can be found in the [wiki.](https://github.com/U-Alberta/prima/wiki/Tools)
