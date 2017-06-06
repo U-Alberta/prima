@@ -26,11 +26,27 @@ Personal Research Management for the IA
 
 ## Tools
 Current available tools included in the prima are:
-1. K-means clustering
-2. Latent Dirichlet allocation
-3. Latent semantic indexing
-4. MinHash
-5. tf-idf
-6. Word count
+1. BM25
 
-More information on how exactly to use these can be found in the [wiki](https://github.com/U-Alberta/prima/wiki/Tools)
+        $ ~/path/to/prima/tools/bm25.sh "prima query bm25"
+2. K-means clustering
+
+        $ ~/path/to/prima/tools/k_means_clusterer.sh k
+3. Latent Dirichlet allocation
+
+        $ ~/path/to/prima/tools/lda.sh k
+4. Latent semantic indexing
+
+        $ ~/path/to/prima/tools/lsi.sh k
+5. MinHash
+
+        $ ~/path/to/prima/tools/min_hash.sh
+        $ ~/path/to/prima/tools/min_hash_sim.sh source/folder/document
+6. tf-idf
+
+        $ ~/path/to/prima/tools/tfidf.sh filetype(.csv/.tsv)
+7. Word count
+
+        $ ~/path/to/prima/tools/word_count.sh
+
+More information on how exactly to use these can be found in the [wiki.](https://github.com/U-Alberta/prima/wiki/Tools)
