@@ -1,9 +1,9 @@
 #!/usr/bin/python
 import ctypes
-import glob
 import nltk.tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
 import os
+import shared
 import sqlite3
 import sys
 
@@ -12,29 +12,29 @@ SHINGLEDB = "processed/shingles.db"
 
 def min_hash():
 	if len(sys.argv) != 1:
-		glob.error("17", ["min_hash", ""])
+		shared.error("11", ["min_hash", ""])
 		return -1
 	try:
-		shingles = glob.gen_shingles()
+		shingles = shared.gen_shingles()
 	except:
-		glob.error("10", ["min_hash", "", glob.SHINGLES])
+		shared.error("6", ["min_hash", ""])
 		return -1
 	try:
 		insert_shingles(shingles)
 	except:
-		glob.error("15", ["min_hash", "", SHINGLESDB])
+		shared.error("9", ["min_hash", ""], SHINGLESDB)
 		return -1
 	try:
 		if not os.path.exists(MINHASHFOLDER):
 			os.makedirs(MINHASHFOLDER)
 		call_c()
 	except:
-		glob.error("2", ["min_hash", ""])
+		shared.error("2", ["min_hash", ""])
 		return -1
 	try:
-		glob.insert_to_db("min_hash", "", "Finished")
+		shared.insert_to_db("min_hash", "", "Finished")
 	except:
-		glob.error("16", ["min_hash", ""])
+		shared.error("10", ["min_hash", ""])
 		return -1
 	return 1
 

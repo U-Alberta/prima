@@ -1,8 +1,8 @@
 #!/usr/bin/python
-import glob
 import math
 import os
 import random
+import shared
 import sqlite3
 import sys
 
@@ -11,16 +11,10 @@ IIDB = "processed/inverted_index.db"
 
 def k_means_clusterer():
 	if len(sys.argv) != 2:
-		glob.error("17", ["k_means_clusterer", ""])
+		shared.error("11", ["k_means_clusterer", ""])
 		return -1
 	k = sys.argv[1]
 	k = int(k)
-	try:
-		conn = sqlite3.connect(IIDB)
-		c = conn.cursor()
-	except:
-		glob.error("3", ["k_means_clusterer", k, IIDB])
-		return -1
 	"""
 	Do we want to let users specify seeds?
 	"""
@@ -33,51 +27,51 @@ def k_means_clusterer():
 	else: 
 	"""
 	try:
-		texts, documents = glob.build_texts("k_means_clusterer")
+		texts, documents = shared.build_texts("k_means_clusterer")
 	except:
-		glob.error("0", ["k_means_clusterer", ""])
+		shared.error("0", ["k_means_clusterer", ""])
 		return -1
 	try:
-		tfidf, raw_tf, dictionary = glob.get_tfidf(texts)
+		tfidf, raw_tf, dictionary = shared.get_tfidf(texts)
 	except:
-		glob.error("1", ["k_means_clusterer", ""])
+		shared.error("1", ["k_means_clusterer", ""])
 		return -1
 	try:
 		seeds = gen_seeds(k, documents)
 	except:
-		glob.error("11", ["k_means_clusterer", k])
+		shared.error("5", ["k_means_clusterer", k], "random seed documents")
 		return -1
 	try:
 		inverted_index = build_inverted_index(tfidf, raw_tf, dictionary, documents)
 	except:
-		glob.error("9", ["k_means_clusterer", k])
+		shared.error("5", ["k_means_clusterer", k], "inverted_index")
 		return -1	
 	try:
-		centroids = get_seed_vector(seeds, inverted_index, dictionary, documents, c)
+		centroids = get_seed_vector(seeds, inverted_index, dictionary, documents)
 	except:
-		glob.error("8", ["k_means_clusterer", k])
+		shared.error("5", ["k_means_clusterer", k], "centroids")
 		return -1
 	while True:
 		try:
-			cluster1 = get_cluster(centroids, documents, inverted_index, dictionary, c)
+			cluster1 = get_cluster(centroids, documents, inverted_index, dictionary)
 			centroid1 = update_centroids(cluster1)
-			cluster2 = get_cluster(centroid1, documents, inverted_index, dictionary, c)
+			cluster2 = get_cluster(centroid1, documents, inverted_index, dictionary)
 		except:
-			glob.error("13", ["k_means_clusterer", k])
+			shared.error("7", ["k_means_clusterer", k])
 			return -1
 		if cluster1 == cluster2:
 			try:
 				write_to_file(cluster2)
 				break
 			except:
-				glob.error("14", ["k_means_clusterer", k])
+				shared.error("8", ["k_means_clusterer", k])
 				return -1
 			return 1
 		centroids = update_centroids(cluster2)
 	try:
-		glob.insert_to_db("k_means_clusterer", k, "Finished")
+		shared.insert_to_db("k_means_clusterer", k, "Finished")
 	except:
-		glob.error("16", ["k_means_clusterer", k])
+		shared.error("10", ["k_means_clusterer", k])
 	return 1
 
 """
@@ -111,7 +105,7 @@ def build_inverted_index(tfidf, raw_tf, dictionary, documents):
 """
 Generates the vectors (ltc) for the seed documents to make initial centroids.
 """
-def get_seed_vector(seeds, inverted_index, tokens, documents, c):
+def get_seed_vector(seeds, inverted_index, tokens, documents):
 	"""
 	seed vector uses ltc weighting: tf=1+log(tf t,d), df=log(N/df t), 
 	normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
@@ -144,7 +138,7 @@ def get_seed_vector(seeds, inverted_index, tokens, documents, c):
 """
 Calculates a document vector based on lnc values.
 """
-def get_document_vector(inverted_index, tokens, d, c):
+def get_document_vector(inverted_index, tokens, d):
 	"""
 	doc vector uses lnc: tf=1+log(tf t, d), df=1, 
 	normalization=1/sqrt(w1^2+w2^2+w3^2+...+wM^2)
@@ -201,10 +195,10 @@ def sd_distance(s, d):
 """
 Assigns every document in the collection to the closest cluster to it.
 """
-def get_cluster(centroids, docs, inverted_index, tokens, c):
+def get_cluster(centroids, docs, inverted_index, tokens):
 	temp = []
 	for d in docs:
-		d_vector = get_document_vector(inverted_index, tokens, d, c)
+		d_vector = get_document_vector(inverted_index, tokens, d)
 		distances = []
 		for s in centroids:
 			s_vector = s[0]

@@ -1,34 +1,34 @@
 #!/usr/bin/python
 from gensim import corpora, summarization
-import glob
 import os
+import shared
 import sys
 
 BM25FOLDER = "processed/bm25/"
 
 def bm_25():
 	if len(sys.argv) < 2:
-		glob.error("17", ["bm25", ""])
+		shared.error("11", ["bm25", ""])
 		return -1
 	q = sys.argv[1:]
 	try:
-		texts, documents = glob.build_texts("bm25")
+		texts, documents = shared.build_texts("bm25")
 	except:
-		glob.error("0", ["bm25", q])
+		shared.error("0", ["bm25", q])
 		return -1
 	try:
 		scores = score(texts, q)
 	except:
-		glob.error("1", ["bm25", q])
+		shared.error("1", ["bm25", q])
 		return -1
 	try:
 		write_to_file(scores, documents, q)
 	except:
-		glob.error("14", ["bm25", q])
+		shared.error("8", ["bm25", q])
 	try:
-		glob.insert_to_db("bm25", "", "Finished")
+		shared.insert_to_db("bm25", "", "Finished")
 	except:
-		glob.error("16", ["bm25", ""])
+		shared.error("10", ["bm25", ""])
 		return -1
 	return 1
 

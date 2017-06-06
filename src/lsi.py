@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from gensim import corpora, models
-import glob
+import shared
 import sys
 
 LSIFOLDER = "processed/lsi/"
@@ -8,28 +8,28 @@ LSIFOLDER = "processed/lsi/"
 # TODO: allow to work on specific directories like word_count?
 def lsi():
 	if len(sys.argv) != 2:
-		glob.error("17", ["lsi", ""])
+		shared.error("11", ["lsi", ""])
 		return -1
 	k = int(sys.argv[1])
 	try:
-		texts, documents = glob.build_texts("lsi")
+		texts, documents = shared.build_texts("lsi")
 	except:
-		glob.error("0", ["lsi", k])
+		shared.error("0", ["lsi", k])
 		return -1
 	try:
 		ck = get_lsi(texts, k)
 	except:
-		glob.error("7", ["lsi", k])
+		shared.error("4", ["lsi", k])
 		return -1
 	try:
-		glob.write_to_file(ck, documents, LSIFOLDER, "lsi.csv")
+		shared.write_to_file(ck, documents, LSIFOLDER, "lsi.csv")
 	except:
-		glob.error("14", ["lsi", k])
+		shared.error("8", ["lsi", k])
 		return -1
 	try:
-		glob.insert_to_db("lsi", k, "Finished")
+		shared.insert_to_db("lsi", k, "Finished")
 	except:
-		glob.error("16", ["lsi", k])
+		shared.error("10", ["lsi", k])
 		return -1
 	return 1
 

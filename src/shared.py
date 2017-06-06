@@ -165,22 +165,15 @@ def error(code, params, val1="", val2=""):
     "0":"Error building text",
     "1":"Error calculating {} values".format(params[0]),
     "2":"Error calling c functions for hashing",
-    "3":"Error connecting to database {}".format(val1),
-    "4":"Error counting words",
-    "5":"Error counting words in {} {}".format(val1, val2),
-    "6":"Error counting words in line {} of {}".format(val1, val2),
-    "7":"Error getting {} matrix".format(params[0]),
-    "8":"Error generating centroids",
-    "9":"Error generating inverted index",
-    "10":"Error generating {}-shingles".format(val1),
-    "11":"Error generating random seed documents",
-    "12":"Error opening document {}".format(val1),
-    "13":"Error running reclustering algorithm",
-    "14":"Error saving result to file(s)",
-    "15":"Error saving to database {}".format(val1),
-    "16":"Error saving to history database {}".format(HISTDB),
-    "17":"Invalid number of command line arguments\nCheck usage in README.md",
-    "18":"Invalid path {}".format(val1)}
+    "3":"Error counting words",
+    "4":"Error getting {} matrix".format(params[0]),
+    "5":"Error generating {}".format(val1),
+    "6":"Error generating {}-shingles".format(SHINGLES),
+    "7":"Error running reclustering algorithm",
+    "8":"Error saving result to file(s)",
+    "9":"Error saving to database {}".format(val1),
+    "10":"Error saving to history database {}".format(HISTDB),
+    "11":"Invalid number of command line arguments\nCheck usage in README.md"}
   print(code_map[code])
   insert_to_db(params[0], params[1], "Error code: "+code)
   return 1

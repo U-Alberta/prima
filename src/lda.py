@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from gensim import corpora, models
-import glob
+import shared
 import sys
 
 LDAFOLDER = "processed/lda/"
@@ -8,28 +8,28 @@ LDAFOLDER = "processed/lda/"
 # TODO: allow to work on specific directories like word_count?
 def lda():
 	if len(sys.argv) != 2:
-		glob.error("17", ["lda", ""])
+		shared.error("11", ["lda", ""])
 		return -1
 	k = int(sys.argv[1])
 	try:
-		texts, documents = glob.build_texts("lda")
+		texts, documents = shared.build_texts("lda")
 	except:
-		glob.error("0", ["lda", k])
+		shared.error("0", ["lda", k])
 		return -1
 	try:
 		ck = get_lda(texts, k)
 	except:
-		glob.error("7", ["lda", k])
+		shared.error("4", ["lda", k])
 		return -1
 	try:
-		glob.write_to_file(ck, documents, LDAFOLDER, "lda.csv")
+		shared.write_to_file(ck, documents, LDAFOLDER, "lda.csv")
 	except:
-		glob.error("14", ["lda", k])
+		shared.error("8", ["lda", k])
 		return -1
 	try:
-		glob.insert_to_db("lda", k, "Finished")
+		shared.insert_to_db("lda", k, "Finished")
 	except:
-		glob.error("16", ["lda", k])
+		shared.error("10", ["lda", k])
 		return -1
 	return 1
 

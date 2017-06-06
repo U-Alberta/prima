@@ -1,7 +1,7 @@
 #!/usr/bin/python
-import glob
 import json
 import os
+import shared
 import sqlite3
 import sys
 
@@ -11,23 +11,23 @@ TFIDFFOLDER = "processed/tfidf/"
 # TODO: allow to work on specific directories like word_count?
 def tfidf():
 	if len(sys.argv) not in [1, 2]:
-		glob.error("17", ["tfidf", ""])
+		shared.error("11", ["tfidf", ""])
 		return -1
 	filetype = sys.argv[1]
 	try:
-		texts, documents = glob.build_texts("tfidf")
+		texts, documents = shared.build_texts("tfidf")
 	except:
-		glob.error("0", ["tfidf", ""])
+		shared.error("0", ["tfidf", ""])
 		return -1
 	try:
-		tfidf, raw_tf, dictionary = glob.get_tfidf(texts)
+		tfidf, raw_tf, dictionary = shared.get_tfidf(texts)
 	except:
-		glob.error("1", ["tfidf", ""])
+		shared.error("1", ["tfidf", ""])
 		return -1
 	try:
 		tokens, postings = write_to_files(tfidf, raw_tf, dictionary, documents, filetype)
 	except:
-		glob.error("14", ["tfidf", ""])
+		shared.error("8", ["tfidf", ""])
 		return -1
 	"""
 	I don't need an inverted_index anymore for my other functions so should this
@@ -37,13 +37,13 @@ def tfidf():
 	try:
 		insert_inverted_index(tokens, postings)
 	except:
-		glob.error("15", ["tfidf", ""], IIDB)
+		shared.error("9", ["tfidf", ""], IIDB)
 		return -1
 	"""
 	try:
-		glob.insert_to_db("tfidf", "", "Finished")
+		shared.insert_to_db("tfidf", "", "Finished")
 	except:
-		glob.error("16", ["tfidf", ""])
+		shared.error("10", ["tfidf", ""])
 		return -1
 	return 1
 
