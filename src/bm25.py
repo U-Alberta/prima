@@ -14,17 +14,17 @@ def bm_25():
 	try:
 		texts, documents = shared.build_texts("bm25")
 	except:
-		shared.error("0", ["bm25", q])
+		shared.error("0", ["bm25", " ".join(q)])
 		return -1
 	try:
 		scores = score(texts, q)
 	except:
-		shared.error("1", ["bm25", q])
+		shared.error("1", ["bm25", " ".join(q)])
 		return -1
 	try:
 		write_to_file(scores, documents, q)
 	except:
-		shared.error("8", ["bm25", q])
+		shared.error("8", ["bm25", " ".join(q)])
 	try:
 		shared.insert_to_db("bm25", "", "Finished")
 	except:
@@ -60,14 +60,17 @@ TODO: include all document scores? scores over a certain threshold? top n
 documents?
 """
 def write_to_file(scores, docs, q):
-  if not os.path.exists(BM25FOLDER):
-    os.makedirs(BM25FOLDER)
-  bm25_file = open(BM25FOLDER+"bm25.csv", "a+")
-  output = "query, "+ " ".join(q)+"\n"
-  for i in range(0, len(docs)):
-  	output+=docs[i]+", "+str(scores[i])+"\n"
-  bm25_file.write(output)
-  bm25_file.close()
-  return 1
+	if not os.path.exists(BM25FOLDER):
+		os.makedirs(BM25FOLDER)
+	bm25_file = open(BM25FOLDER+"bm25.csv", "a+")
+	output = "query, "+ " ".join(q)+"\n"
+	for i in range(0, len(scores)):
+		scores[i] = (scores[i], docs[i])
+	scores = sorted(scores, key=lambda tup:tup[0], reverse=True)
+	for i in range(0, len(scores)):
+		output+=scores[i][1]+", "+str(scores[i][0])+"\n"
+	bm25_file.write(output)
+	bm25_file.close()
+	return 1
 
 bm_25()
