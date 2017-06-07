@@ -27,10 +27,10 @@ This project uses [gensim](https://radimrehurek.com/gensim/install.html), [nltk 
 6. For every new collection to be created, repeat step 3 lines 3-5 and step 4 with the new collection before using any tools.
 
 ## Tools
-Current available tools included in the prima and basic examples are below:
+Current available tools included in the prima and basic examples are:
 1. BM25
 
-        $ ~/path/to/prima/tools/bm25.sh "prima query bm25"
+        $ ~/path/to/prima/tools/bm25.sh prima query bm25
 2. K-means clustering
 
         $ ~/path/to/prima/tools/k_means_clusterer.sh k
