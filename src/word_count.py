@@ -32,6 +32,9 @@ def word_count():
 """
 Iterate through all the folders in the collection and call the next lower 
 function (collection calls item which calls file which calls line).
+
+params:
+return: a string of directories/documents and their word counts to be outputted in a file
 """
 def count_collection():
 	output = ""
@@ -42,6 +45,10 @@ def count_collection():
 		output+=tup[1]
 	return PATH+", "+str(n)+"\n"+output
 
+"""
+params: path (path to a file)
+return: n (the word count of that item), a partial string to be outputted
+"""
 def count_item(path):
 	output = ""
 	n = 0
@@ -51,6 +58,10 @@ def count_item(path):
 		output+=tup[1]
 	return n, path+", "+str(n)+"\n"+output
 
+"""
+params: path (path to a file)
+return: n (the word count of that file), a partial string to be outputted
+"""
 def count_file(path):
 	n = 0
 	if len(path.split(".pdf")) == 2:
@@ -69,6 +80,9 @@ def count_file(path):
 """
 When count_line is called, tokenize the line, remove symbols and count the 
 words.
+
+params: line (the line number to be counted), path (path to a file)
+return: n (word count of that line)
 """
 def count_line(line, path):
 	n = 0
@@ -85,6 +99,9 @@ def count_line(line, path):
 
 """
 Write the word count values to the file processed/word_count/word_count.txt.
+
+params: output (the string to be outputted)
+return: 
 """
 def write_to_file(output):
 	if not os.path.exists(WORDCOUNTFOLDER):
@@ -93,5 +110,6 @@ def write_to_file(output):
 	outfile.write("document/directory, count\n")
 	outfile.write(output)
 	outfile.close()
+	return 1
 
 word_count()

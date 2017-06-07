@@ -15,14 +15,14 @@ def min_hash():
 		shared.error("11", ["min_hash", ""])
 		return -1
 	try:
-		shingles = shared.gen_shingles()
+		shingles, docs = shared.gen_shingles()
 	except:
 		shared.error("6", ["min_hash", ""])
 		return -1
 	try:
-		insert_shingles(shingles)
+		insert_shingles(shingles, docs)
 	except:
-		shared.error("9", ["min_hash", ""], SHINGLESDB)
+		shared.error("9", ["min_hash", ""], SHINGLEDB)
 		return -1
 	try:
 		if not os.path.exists(MINHASHFOLDER):
@@ -40,25 +40,35 @@ def min_hash():
 
 """
 Save the k-shingles to a database to be accessed in the c program
+
+params: shingles (created by shared.gen_shingles)
+return:
 """
 # TODO: keep this db? (right now it's kept)
-def insert_shingles(shingles):
+def insert_shingles(shingles, documents):
 	conn = sqlite3.connect(SHINGLEDB)
 	c = conn.cursor()
 	c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name="\
 		"'Shingle'")
-	if c.fetchone() != None:
-		c.execute("DROP TABLE Shingle")
+	if c.fetchone() == None:
+		for i in range(0, len(documents)):
+			documents[i] = (i, documents[i])
+		c.execute("CREATE TABLE Shingle(docid int, shingle text)")
 		conn.commit()
-	c.execute("CREATE TABLE Shingle(docid int, docname text, shingle text)")
-	conn.commit()
-	c.executemany("INSERT INTO Shingle VALUES(?,?,?)", shingles)
-	conn.commit()
+		c.executemany("INSERT INTO Shingle VALUES(?,?)", shingles)
+		conn.commit()
+		c.execute("CREATE TABLE Document(docid int, docname text)")
+		conn.commit()
+		c.executemany("INSERT INTO Document VALUES(?,?)", documents)
+		conn.commit()
 	conn.close()
 	return 1
 
 """
 Call the c file to do the expensive functions for hashing
+
+params:
+return:
 """
 def call_c():
 	temp = os.path.abspath(__file__)

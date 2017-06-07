@@ -5,7 +5,6 @@ import sys
 
 LSIFOLDER = "processed/lsi/"
 
-# TODO: allow to work on specific directories like word_count?
 def lsi():
 	if len(sys.argv) != 2:
 		shared.error("11", ["lsi", ""])
@@ -35,6 +34,9 @@ def lsi():
 
 """
 Use the gensim library to generate an lsi matrix.
+
+params: texts (created by shared.build_texts), k (number of dimensions)
+return: ck (lsi reduced matrix)
 """
 def get_lsi(texts, k):
 	dictionary = corpora.Dictionary(texts)

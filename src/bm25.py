@@ -36,6 +36,9 @@ def bm_25():
 """
 Use the gensim library to score the query using the BM25 model.
 https://stackoverflow.com/questions/40966014/how-to-use-gensim-bm25-ranking-in-python
+
+params: texts (created by shared.build_texts), q (space-separated query)
+return: 
 """
 def score(texts, q):
 	dictionary = corpora.Dictionary(texts)
@@ -50,6 +53,9 @@ def score(texts, q):
 """
 Write the query and all document scores in a common file holding all queries 
 scored so far.
+
+params: scores(the list of scores), docs(the list of documents), q(space-separated query)
+return:
 TODO: include all document scores? scores over a certain threshold? top n 
 documents?
 """

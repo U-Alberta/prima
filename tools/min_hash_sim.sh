@@ -1,2 +1,2 @@
 #!/bin/sh
-min_hash_sim.py $1
+min_hash_sim.py $1 $2

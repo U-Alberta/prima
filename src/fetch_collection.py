@@ -4,7 +4,7 @@ import sys
 import time
 
 COLLECTIONFOLDER = "source/"
-ERRLOG = "source/fetch_collection_errors.log"
+ERRLOG = "fetch_collection_errors.log"
 
 def fetch():
 	error_log = open(ERRLOG ,"a")

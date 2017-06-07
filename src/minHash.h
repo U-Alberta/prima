@@ -28,9 +28,9 @@ typedef struct {
 } MinHash;
 
 char* db_name = "processed/shingles.db";
-char* sql_select_stmt_one = "SELECT COUNT(DISTINCT docid) FROM Shingle;";
+char* sql_select_stmt_one = "SELECT COUNT(*) FROM Document;";
 char* sql_select_stmt_two = "SELECT docid, COUNT(*) FROM Shingle GROUP BY docid;";
-char* sql_select_stmt_three = "SELECT DISTINCT docname FROM Shingle WHERE docid=?";
+char* sql_select_stmt_three = "SELECT DISTINCT docname FROM Document WHERE docid=?";
 char* sql_select_stmt_four = "SELECT shingle FROM Shingle WHERE docid=?;";
 
 void main();

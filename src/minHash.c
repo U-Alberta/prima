@@ -1,4 +1,4 @@
-#include "minhash.h"
+#include "minHash.h"
 
 void main() {
 	int retval = minHash();
@@ -26,6 +26,9 @@ int minHash() {
     return -1;
   }
   int* shingleLengths = (int*) malloc(sizeof(int)*documentCount);
+  for (int i=0; i<documentCount; ++i) {
+    shingleLengths[i] = 0;
+  }
   shingleLengths = sqlStmtTwo(documentCount, shingleLengths, rc, db, stmt);
   if (shingleLengths[0] == 0) {
     return -1;

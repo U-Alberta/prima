@@ -8,9 +8,8 @@ import sys
 IIDB = "processed/inverted_index.db"
 TFIDFFOLDER = "processed/tfidf/"
 
-# TODO: allow to work on specific directories like word_count?
 def tfidf():
-	if len(sys.argv) not in [1, 2]:
+	if len(sys.argv) != 2:
 		shared.error("11", ["tfidf", ""])
 		return -1
 	filetype = sys.argv[1]
@@ -50,6 +49,12 @@ def tfidf():
 """
 Write the tf, df, and tf-idf values of terms and documents to three files in 
 the processed/tfidf folder.
+
+params: tfidf (the tfidf values of all terms in all documents), raw_tf (term 
+	frequencies), dictionary (a list of all terms in the corpus), documents (a 
+	list of all documents in the corpus), filetype (the filetype to save)
+return: tokens (list of tuples to be inserted to inverted_index), postings 
+	(list of tuples to be inserted to inverted_index) <<<<<<<<<<<<<<<<<<<<<<change that??
 """
 def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
 	data = {"df":{}}
@@ -104,9 +109,17 @@ def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
 		json.dump(data, outfile, sort_keys=True, indent=4)
 	return tokens, postings
 
+
+
+
+
+
+
 """
 This inserts all rows of the inverted index to a SQLite database.
-May be deleted.
+
+params:
+return:
 """
 def insert_inverted_index(tokens, postings):
 	conn = sqlite3.connect(IIDB)

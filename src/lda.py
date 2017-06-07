@@ -5,7 +5,6 @@ import sys
 
 LDAFOLDER = "processed/lda/"
 
-# TODO: allow to work on specific directories like word_count?
 def lda():
 	if len(sys.argv) != 2:
 		shared.error("11", ["lda", ""])
@@ -35,6 +34,9 @@ def lda():
 
 """
 Use the gensim library to generate an lda matrix.
+
+params: texts (created by shared.build_texts), k (number of dimensions)
+return: ck (lda reduced matrix)
 """
 def get_lda(texts, k):
 	dictionary = corpora.Dictionary(texts)

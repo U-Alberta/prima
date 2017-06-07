@@ -21,16 +21,16 @@ PUNC = {"`":0, "~":0, "!":0, "@":0, "#":0 , "$":0, "%":0, "^":0, "&":0, "*":0, \
   "|":0, ";":0, ":":0, "'":0, '"':0, ",":0, "<":0, ".":0, ">":0, "/":0, "?":0, \
   "0":0, "1":0, "2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0}
 HISTDB = "processed/hist.db"
-"""
-Should we let the user specify this? I think we could have 3 as a default and 
-if the user wants to change it they can in the arguments.
-"""
 SHINGLES = 3
 
 """
 Parse through all the documents in the corpus, generating a list of words and 
 documents.
-Called by lda.py, lsi.py, min_hash.py, and tfidf.py.
+
+called by: lda.py, lsi.py, min_hash.py, and tfidf.py.
+params: mode (which function is calling this)
+return: s (a set of shingles) or texts (a list of all the terms in all the 
+  documents) and documents(list of documents)
 """
 def build_texts(mode):
   texts = []
@@ -52,10 +52,8 @@ def build_texts(mode):
         elif len(path.split(".txt")) == 2:
           doc = open("source/"+item+"/"+file, "r")
           doccounter+=1
-        #elif path[len(path)-8:] == "_marc.xml":
-        	#doc = read_marc(path)
         else:
-          print("Incompatible file type {}".format(file))
+          print("Warning: incompatible file type {}".format(file))
           pass
         documents.append(docid)
         doc_text = []
@@ -74,11 +72,9 @@ def build_texts(mode):
                   pass
         texts.append(doc_text)
       except:
-        error("12", [mode, ""], docid)
-  if mode == "min_hash": return s
+        print("Warning: skipping document {}".format(docid))
+  if mode == "min_hash": return s, documents
   else: return texts, documents
-
-#def read_marc(path):
 
 """
 gen_shingles, prep_shingles, and min_hash_subfxn are all used by min_hash. 
@@ -96,6 +92,13 @@ def prep_shingle():
     shingle.append("")
   return shingle
 
+"""
+params: doccounter (counter for documents for entering to the shingles db), 
+docid (id of current document), s (list of shingles so far), shingle (list of 
+shingles for that document), term (current term)
+return: shingle (list of shingles for that document), s (list of shingles so 
+  far)
+"""
 def min_hash_subfxn(doccounter, docid, s, shingle, term):
   for i in range(0, SHINGLES):
     if shingle[i] == "":
@@ -103,7 +106,7 @@ def min_hash_subfxn(doccounter, docid, s, shingle, term):
       break
   if shingle[-1] != "":
     shingle_str = " ".join(shingle)
-    s.append((doccounter, docid, shingle_str))
+    s.append((doccounter, shingle_str))
     for i in range(0, SHINGLES-1):
       shingle[i] = shingle[i+1]
     shingle[-1] = ""
@@ -111,17 +114,26 @@ def min_hash_subfxn(doccounter, docid, s, shingle, term):
 
 """
 Write the newly created matrix ck to a csv file in the processed/lsi folder.
-Called by lsi.py, and lda.py.
+
+called by: lsi.py, and lda.py.
+params: ck (new reduced matrix), docs (document list for columns), folder 
+  (folder to be saved in), file (file to be saved in)
+return:
 """
 def write_to_file(ck, docs, folder, file):
   df = pd.DataFrame(ck, columns=docs)
   if not os.path.exists(folder):
     os.makedirs(folder)
   df.to_csv(folder+file)
+  return 1
 
 """
 Use the gensim library to calculate tfidf.
-Called by k_means_clusterer.py, and tfidf.py
+
+called by: k_means_clusterer.py, and tfidf.py
+params: texts (created by shared.build_texts)
+return: corpus_tfidf (a list of tfidf values), corpus (a list of term ids in 
+  all the documents of the corpus), dictionary (a list of terms in the corpus)
 """
 def get_tfidf(texts):
 	dictionary = corpora.Dictionary(texts)
@@ -133,7 +145,10 @@ def get_tfidf(texts):
 """
 Converts pdf text to a single string based on code here:
 https://stackoverflow.com/questions/26494211/extracting-text-from-a-pdf-file-using-pdfminer-in-python
-Called by word_count.py, and tfidf.py.
+
+called by: word_count.py, and tfidf.py.
+params: path (the path to the pdf)
+return: text (one line of text representing the entire pdf)
 """
 def convert_pdf_to_txt(path):
   rsrcmgr = PDFResourceManager()
@@ -157,8 +172,12 @@ def convert_pdf_to_txt(path):
   return text
 
 """
-I list of all the possible errors that can be thrown by all the functions.
-params = [command, command line parameters, ..]
+A list of all the possible errors that can be thrown by all the functions.
+
+params: code (error code number), params ([command, command line arguments]), 
+  val1 (empty unless needed for further information), val2 (empty unless 
+  needed for further information)
+return:
 """
 def error(code, params, val1="", val2=""):
   code_map = {
@@ -180,7 +199,11 @@ def error(code, params, val1="", val2=""):
 
 """
 Insert the command used, output, and time run to the history database.
-Called by all functions.
+
+called by: all functions.
+params: command (the function called), param (command line arguments), output 
+(whether or not the function was successfully completed)
+return:
 """
 def insert_to_db(command, param, output):
   time = datetime.datetime.now()
