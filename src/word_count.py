@@ -73,7 +73,7 @@ def count_file(path):
 			n+=count_line(line, path)
 		doc.close()
 	else:
-		print("Warning: incompatible file type {}".format(file))
+		print("Warning: incompatible file type {}".format(path))
 		pass
 	return n, path+", "+str(n)+"\n"
 

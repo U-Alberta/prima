@@ -94,6 +94,8 @@ def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
 			tmp = raw_df[term][0]
 			raw_df[term] = (tmp+1, token_id)
 			j+=1
+		if data[docid] == {"tf-idf":{}, "tf":{}}:
+			del data[docid]
 		i+=1
 	for term in raw_df.keys():
 		df = raw_df[term][0]
@@ -106,7 +108,7 @@ def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
 	tf_file.close()
 	df_file.close()
 	with open(TFIDFFOLDER+"data.json", "w") as outfile:
-		json.dump(data, outfile, sort_keys=True, indent=4)
+		json.dump(data, outfile, sort_keys=True, indent=2)
 	return tokens, postings
 
 

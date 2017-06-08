@@ -208,7 +208,8 @@ DocShingles* sqlStmtFour(int documentCount, DocShingles* s, int rc, sqlite3* db,
 
 /*
 This first allocates memory for every new min hash the for every document and 
-every hash function, finds the minimum hash value and saves that to h.
+every hash function. Then it finds the minimum hash value for each document and 
+hash function (hashNums) pair and saves that to h[].minHashes[].
 */
 MinHash* getMinHash(DocShingles* s, MinHash* h, int* hashNums, \
 	int* shingleLengths, int documentCount) {

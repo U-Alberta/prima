@@ -51,6 +51,10 @@ def k_means_clusterer():
 	except:
 		shared.error("5", ["k_means_clusterer", k], "centroids")
 		return -1
+	"""
+	Loop through reclustering documents and recalculating centroids until the 
+	clusters don't change anymore.
+	"""
 	while True:
 		try:
 			cluster1 = get_cluster(centroids, documents, inverted_index, dictionary)
@@ -66,8 +70,8 @@ def k_means_clusterer():
 			except:
 				shared.error("8", ["k_means_clusterer", k])
 				return -1
-			return 1
-		centroids = update_centroids(cluster2)
+		else:
+			centroids = update_centroids(cluster2)
 	try:
 		shared.insert_to_db("k_means_clusterer", k, "Finished")
 	except:

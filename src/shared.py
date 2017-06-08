@@ -72,7 +72,7 @@ def build_texts(mode):
                   pass
         texts.append(doc_text)
       except:
-        print("Warning: skipping document {}".format(docid))
+        print("Warning: couldn't open document {}".format(docid))
   if mode == "min_hash": return s, documents
   else: return texts, documents
 
