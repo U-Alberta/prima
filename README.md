@@ -43,7 +43,7 @@ Current available tools included in the prima and basic examples are:
 5. MinHash
 
         $ ~/path/to/prima/tools/min_hash.sh
-        $ ~/path/to/prima/tools/min_hash_sim.sh source/folder/document
+        $ ~/path/to/prima/tools/min_hash_sim.sh source/folder/document k
 6. tf-idf
 
         $ ~/path/to/prima/tools/tfidf.sh filetype(.csv/.tsv)
