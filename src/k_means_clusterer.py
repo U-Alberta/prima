@@ -3,7 +3,6 @@ import math
 import os
 import random
 import shared
-import sqlite3
 import sys
 
 KMEANSFOLDER = "processed/k_means/"
@@ -22,7 +21,7 @@ def k_means_clusterer():
 	if len(sys.argv) > 3:
 		seeds = sys.argv[3:]
 		if len(seeds) != k:
-			print("k doesn't match number of seeds given")
+			print("Number of clusters doesn't match number of seeds given")
 			return -1
 	else: 
 	"""

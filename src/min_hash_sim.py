@@ -12,10 +12,10 @@ def min_hash_sim():
 		return -1
 	try:
 		doc = sys.argv[1]
-		k = int(sys.argv[2])
+		k = float(sys.argv[2])
 		docid = get_docid(doc)
 	except:
-		shared.error("5", ["min_hash_sim", k], "docname")
+		shared.error("5", ["min_hash_sim", ""], "docname")
 		return -1
 	try:
 		dup_docs = get_document_list(docid)
@@ -73,17 +73,28 @@ def get_document_list(doc):
 	return docs_list
 
 def write_to_file(docs, docid, k):
-  if not os.path.exists(MINHASHFOLDER):
-    os.makedirs(MINHASHFOLDER)
-  file = open(MINHASHFOLDER+"min_hash_sim.csv", "a+")
-  file.write(docid+"\n")
-  if len(docs) < k:
-  	print("Warning: number of documents to return higher than number of "\
-  		"documents in the collection")
-  for i in range(0, min(k, len(docs))):
-  	row = docs[i][0]+", "+str(docs[i][1])+"\n"
-  	file.write(row)
-  file.close()
-  return 1
+	if not os.path.exists(MINHASHFOLDER):
+		os.makedirs(MINHASHFOLDER)
+	file = open(MINHASHFOLDER+"min_hash_sim.csv", "a+")
+	file.write(docid+"\n")
+	if k < 1:
+		i = 0
+		while i < len(docs):
+			if docs[i][1] > k:
+				row = docs[i][0]+", "+str(docs[i][1])+"\n"
+				file.write(row)
+			else:
+				i = len(docs)
+			i+=1
+	else:
+		k = int(k)
+		if len(docs) < k:
+			print("Warning: number of documents to return higher than number of "\
+				"documents in the collection")
+		for i in range(0, min(k, len(docs))):
+			row = docs[i][0]+", "+str(docs[i][1])+"\n"
+			file.write(row)
+	file.close()
+	return 1
 
 min_hash_sim()
