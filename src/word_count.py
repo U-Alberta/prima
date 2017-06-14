@@ -66,7 +66,7 @@ def count_file(path):
 	n = 0
 	if len(path.split(".pdf")) == 2:
 		line = shared.convert_pdf_to_txt(path)
-		n+=count_line(line)
+		n+=count_line(line, path)
 	elif len(path.split(".txt")) == 2:
 		doc = open(path, "r")
 		for line in doc:

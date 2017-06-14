@@ -253,9 +253,15 @@ int hash(unsigned char* str) {
 Print a table of documents and their hash values to a csv file.
 */
 void printToCSV(MinHash *h, int documentCount) {
+  time_t t;
+  struct tm *tm;
+  time (&t);
+  tm = localtime (&t);
+  char* time_str;
   FILE *fp;
   char *filename = "processed/min_hash/min_hash.csv";
   fp = fopen(filename, "w+");
+  fprintf(fp, "%s", asctime(tm));
   fprintf(fp, " ");
   for (int i=0; i<documentCount; ++i) {
     fprintf(fp, ", %s", h[i].docid);

@@ -7,12 +7,16 @@ MINHASHFOLDER = "processed/min_hash/"
 HASHVALUES = 10.0
 
 def min_hash_sim():
-	if len(sys.argv) != 3:
+	if len(sys.argv) == 2:
+		doc = sys.argv[1]
+		k = 10.0
+	elif len(sys.argv) == 3:
+		doc = sys.argv[1]
+		k = float(sys.argv[2])
+	else:
 		shared.error("11", ["min_hash_sim", ""])
 		return -1
 	try:
-		doc = sys.argv[1]
-		k = float(sys.argv[2])
 		docid = get_docid(doc)
 	except:
 		shared.error("5", ["min_hash_sim", ""], "docname")
@@ -48,12 +52,13 @@ def get_document_list(doc):
 	docs_list = []
 	doc_pos = 0
 	file = open(MINHASHFOLDER+"min_hash.csv", "r")
-	first_line = file.readline()
-	first_line = first_line.split(", ")
-	first_line[-1] = first_line[-1].strip("\n")
-	for i in range(1, len(first_line)):
-		docs_list.append((first_line[i], 0))
-		if first_line[i] == doc:
+	time_line = file.readline()
+	docs_line = file.readline()
+	docs_line = docs_line.split(", ")
+	docs_line[-1] = docs_line[-1].strip("\n")
+	for i in range(1, len(docs_line)):
+		docs_list.append((docs_line[i], 0))
+		if docs_line[i] == doc:
 			doc_pos = i-1
 	for line in file:
 		hash_vals = line.split(", ")

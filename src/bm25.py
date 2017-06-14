@@ -1,8 +1,10 @@
 #!/usr/bin/python
+import datetime
 from gensim import corpora, summarization
 import os
 import shared
 import sys
+import time
 
 BM25FOLDER = "processed/bm25/"
 
@@ -28,7 +30,7 @@ def bm_25():
 	try:
 		shared.insert_to_db("bm25", "", "Finished")
 	except:
-		shared.error("10", ["bm25", ""])
+		shared.error("10", ["bm25", " ".join(q)])
 		return -1
 	return 1
 
@@ -63,7 +65,11 @@ def write_to_file(scores, docs, q):
 	if not os.path.exists(BM25FOLDER):
 		os.makedirs(BM25FOLDER)
 	bm25_file = open(BM25FOLDER+"bm25.csv", "a+")
-	output = "query, "+ " ".join(q)+"\n"
+	t = time.localtime()
+	verbose_time = time.asctime(t)
+	bm25_file.write(verbose_time+"\n")
+	query = " ".join(q)
+	output = "query, "+" ".join(q)+"\n"
 	for i in range(0, len(scores)):
 		scores[i] = (scores[i], docs[i])
 	scores = sorted(scores, key=lambda tup:tup[0], reverse=True)

@@ -9,10 +9,9 @@ IIDB = "processed/inverted_index.db"
 TFIDFFOLDER = "processed/tfidf/"
 
 def tfidf():
-	if len(sys.argv) != 2:
+	if len(sys.argv) != 1:
 		shared.error("11", ["tfidf", ""])
 		return -1
-	filetype = sys.argv[1]
 	try:
 		texts, documents = shared.build_texts("tfidf")
 	except:
@@ -24,7 +23,7 @@ def tfidf():
 		shared.error("1", ["tfidf", ""])
 		return -1
 	try:
-		tokens, postings = write_to_files(tfidf, raw_tf, dictionary, documents, filetype)
+		tokens, postings = write_to_files(tfidf, raw_tf, dictionary, documents)
 	except:
 		shared.error("8", ["tfidf", ""])
 		return -1
@@ -52,25 +51,24 @@ the processed/tfidf folder.
 
 params: tfidf (the tfidf values of all terms in all documents), raw_tf (term 
 	frequencies), dictionary (a list of all terms in the corpus), documents (a 
-	list of all documents in the corpus), filetype (the filetype to save)
+	list of all documents in the corpus)
 return: tokens (list of tuples to be inserted to inverted_index), postings 
 	(list of tuples to be inserted to inverted_index) <<<<<<<<<<<<<<<<<<<<<<change that??
 """
-def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
+def write_to_files(tfidf, raw_tf, dictionary, documents):
 	data = {"df":{}}
 	tokens = []
 	postings = []
 	raw_df = {}
-	if filetype == ".tsv": separator = "\t"
-	else: separator =", "
+	comma = ", "
 	if not os.path.exists(TFIDFFOLDER):
 		os.makedirs(TFIDFFOLDER)
-	idf_file = open(TFIDFFOLDER+"tfidf"+filetype, "w")
-	idf_file.write("term{}document{}tf-idf\n".format(separator, separator))
-	tf_file = open(TFIDFFOLDER+"tf"+filetype, "w")
-	tf_file.write("term{}document{}tf\n".format(separator, separator))
-	df_file = open(TFIDFFOLDER+"df"+filetype, "w")
-	df_file.write("term{}df\n".format(separator))
+	idf_file = open(TFIDFFOLDER+"tfidf.csv", "w")
+	idf_file.write("term{}document{}tf-idf\n".format(comma, comma))
+	tf_file = open(TFIDFFOLDER+"tf.csv", "w")
+	tf_file.write("term{}document{}tf\n".format(comma, comma))
+	df_file = open(TFIDFFOLDER+"df.csv", "w")
+	df_file.write("term{}df\n".format(comma))
 	i = 0
 	for doc_tfidf in tfidf:
 		doc_tf = raw_tf[i]
@@ -82,10 +80,10 @@ def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
 			term = dictionary[token_id]
 			tfidf = posting[1]
 			tf = doc_tf[j][1]
-			line = term+separator+docid+separator+str(tfidf)+"\n"
+			line = term+comma+docid+comma+str(tfidf)+"\n"
 			idf_file.write(line)
 			data[docid]["tf-idf"][term] = tfidf
-			line = term+separator+docid+separator+str(tf)+"\n"
+			line = term+comma+docid+comma+str(tf)+"\n"
 			tf_file.write(line)
 			data[docid]["tf"][term] = tf
 			postings.append((token_id, i, tf, tfidf))
@@ -101,7 +99,7 @@ def write_to_files(tfidf, raw_tf, dictionary, documents, filetype):
 		df = raw_df[term][0]
 		token_id = raw_df[term][1]
 		tokens.append((term, df, token_id))
-		line = term+separator+str(df)+"\n"
+		line = term+comma+str(df)+"\n"
 		df_file.write(line)
 		data["df"][term] = df
 	idf_file.close()

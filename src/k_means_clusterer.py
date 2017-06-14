@@ -9,11 +9,14 @@ KMEANSFOLDER = "processed/k_means/"
 IIDB = "processed/inverted_index.db"
 
 def k_means_clusterer():
-	if len(sys.argv) != 2:
+	if len(sys.argv) == 1:
+		k = 3 # Default number of clusters is 3
+	elif len(sys.argv) == 2:
+		k = sys.argv[1]
+		k = int(k)
+	else:
 		shared.error("11", ["k_means_clusterer", ""])
 		return -1
-	k = sys.argv[1]
-	k = int(k)
 	"""
 	Do we want to let users specify seeds?
 	"""

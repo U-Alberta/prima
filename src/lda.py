@@ -6,10 +6,13 @@ import sys
 LDAFOLDER = "processed/lda/"
 
 def lda():
-	if len(sys.argv) != 2:
+	if len(sys.argv) == 1:
+		k = 100 # Default dimensions is 100
+	elif len(sys.argv) == 2:
+		k = int(sys.argv[1])
+	else:
 		shared.error("11", ["lda", ""])
 		return -1
-	k = int(sys.argv[1])
 	try:
 		texts, documents = shared.build_texts("lda")
 	except:
@@ -41,7 +44,6 @@ return: ck (lda reduced matrix)
 def get_lda(texts, k):
 	dictionary = corpora.Dictionary(texts)
 	corpus = [dictionary.doc2bow(text) for text in texts]
-	tfidf = models.TfidfModel(corpus)
 	lda = models.LdaModel(corpus, id2word=dictionary, num_topics=k)
 	corpus_lda = lda[corpus]
 	ck = []
