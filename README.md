@@ -31,22 +31,22 @@ Current available tools included in the prima and basic examples are:
 1. BM25
 
         $ ~/path/to/prima/tools/bm25.sh sample query here
-2. K-means clustering
+2. K-means clustering (default k=3)
 
-        $ ~/path/to/prima/tools/k_means_clusterer.sh k
-3. Latent Dirichlet allocation
+        $ ~/path/to/prima/tools/k_means_clusterer.sh [k]
+3. Latent Dirichlet allocation (default k=100)
 
-        $ ~/path/to/prima/tools/lda.sh k
-4. Latent semantic indexing
+        $ ~/path/to/prima/tools/lda.sh [k]
+4. Latent semantic indexing (default k=100)
 
-        $ ~/path/to/prima/tools/lsi.sh k
-5. MinHash
+        $ ~/path/to/prima/tools/lsi.sh [k]
+5. MinHash (default k=10)
 
         $ ~/path/to/prima/tools/min_hash.sh
-        $ ~/path/to/prima/tools/min_hash_sim.sh source/folder/document k
+        $ ~/path/to/prima/tools/min_hash_sim.sh source/folder/document [k]
 6. tf-idf
 
-        $ ~/path/to/prima/tools/tfidf.sh filetype(.csv/.tsv)
+        $ ~/path/to/prima/tools/tfidf.sh
 7. Word count
 
         $ ~/path/to/prima/tools/word_count.sh
