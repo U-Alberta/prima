@@ -27,6 +27,20 @@ def tfidf():
 	except:
 		shared.error("8", ["tfidf", ""])
 		return -1
+<<<<<<< HEAD
+=======
+	"""
+	I don't need an inverted_index anymore for my other functions so should this
+	be created?
+	"""
+	"""
+	try:
+		insert_inverted_index(tokens, postings)
+	except:
+		shared.error("9", ["tfidf", ""], IIDB)
+		return -1
+	"""
+>>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	try:
 		shared.insert_to_db("tfidf", "", "Finished")
 	except:
@@ -98,4 +112,32 @@ def write_to_files(tfidf, raw_tf, dictionary, documents):
 		json.dump(data, outfile, sort_keys=True, indent=2)
 	return tokens, postings
 
+<<<<<<< HEAD
+=======
+
+
+
+
+
+
+"""
+This inserts all rows of the inverted index to a SQLite database.
+
+params:
+return:
+"""
+def insert_inverted_index(tokens, postings):
+	conn = sqlite3.connect(IIDB)
+	c = conn.cursor()
+	c.execute("CREATE TABLE Token(token text, df int, token_id int PRIMARY KEY)")
+	c.execute("CREATE TABLE Posting(token_id int, doc_id int, tf int, tf_idf "\
+		"float, FOREIGN KEY(token_id) REFERENCES Token(token_id))")
+	conn.commit()
+	c.executemany("INSERT INTO Token VALUES (?,?,?)", tokens)
+	c.executemany("INSERT INTO Posting VALUES (?,?,?,?)", postings)
+	conn.commit()
+	conn.close()
+	return 1
+
+>>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 tfidf()
