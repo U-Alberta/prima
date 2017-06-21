@@ -1,54 +1,50 @@
 # prima
 Personal Research Management for the IA
 
-## Dependencies
-This project uses [gensim](https://radimrehurek.com/gensim/install.html), [nltk tokenizer](http://www.nltk.org/install.html), and [pandas](https://pypi.python.org/pypi/pandas/#downloads) as well as the [internetarchive python library](https://internetarchive.readthedocs.io/en/latest/installation.html) for some of the tools and runs with [python 2.7](https://www.python.org/downloads/) and c. You will need to download them by following the instructions on the websites.
-
 ## Installation
 1. Clone this repository to somewhere in your file system.
-2. Setup a $PATH variable to /prima/src and run the following, replacing ~/path/to with your personal path to the prima repository
-  >
-    $ chmod +x ~/path/to/prima/src/*
-    $ chmod +x ~/path/to/prima/tools/*
+2. To install the tool, first [download SQLite](https://sqlite.org/download.html) and place the files titled sqlite3.c and sqlite3.h in the prima/src directory. Then run
+
+        $ sudo python setup.py install
 3. To create the appropriate directories for your file system run the following commands where **project_name** is the desired file name for a collection to be saved in
-  >
-    $ ~/path/to/prima/tools/init_workspace.sh
-    $ cd workspace
-    $ ~/path/to/prima/tools/init_project.sh project_name
-    $ cd project_name
-    $ ~/path/to/prima/tools/init_collection.sh
+
+        $ init_workspace.sh
+        $ cd workspace
+        $ init_project.sh project_name
+        $ cd project_name
+        $ init_collection.sh
 4. To download a collection into the auto-generated source/ directory, run the following where **collection_name** is a valid id for a collection in archive.org (for example [this](https://archive.org/details/toronto) collection would use collection_name=toronto)
-  >
-    $ ~/path/to/prima/tools/fetch_collection.sh collection_name 
+
+        $ fetch_collection.sh collection_name 
 
 5. After completing steps 1-5, run the following to get stats on your collection where **tool** is one of the options listed below with the appropriate parameters
-  >
-    $ ~/path/to/prima/tools/tool params
+
+        $ toolname params
 6. For every new collection to be created, make sure you're in the workspace directory and repeat step 3 lines 3-5 and step 4 with the new collection name before using any tools.
 
 ## Tools
 Current available tools included in the prima and basic examples are:
-1. BM25
+1. BM25 (default k=10)
 
-        $ ~/path/to/prima/tools/bm25.sh sample query here
+        $ bm25.sh [k] "sample query here"
 2. K-means clustering (default k=3)
 
-        $ ~/path/to/prima/tools/k_means_clusterer.sh [k]
+        $ k_means_clusterer.sh [k]
 3. Latent Dirichlet allocation (default k=100)
 
-        $ ~/path/to/prima/tools/lda.sh [k]
+        $ lda.sh [k]
 4. Latent semantic indexing (default k=100)
 
-        $ ~/path/to/prima/tools/lsi.sh [k]
+        $ lsi.sh [k]
 5. MinHash (default k=10)
 
-        $ ~/path/to/prima/tools/min_hash.sh
-        $ ~/path/to/prima/tools/min_hash_sim.sh source/folder/document [k]
+        $ min_hash.sh
+        $ min_hash_sim.sh source/folder/document [k]
 6. tf-idf
 
-        $ ~/path/to/prima/tools/tfidf.sh
+        $ tfidf.sh
 7. Word count
 
-        $ ~/path/to/prima/tools/word_count.sh
+        $ word_count.sh
 
 More detail on how exactly to use these can be found in the [wiki.](https://github.com/U-Alberta/prima/wiki/Tools)
