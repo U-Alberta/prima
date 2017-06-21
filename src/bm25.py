@@ -9,7 +9,6 @@ import time
 BM25FOLDER = "processed/bm25/"
 
 def bm_25():
-<<<<<<< HEAD
 	args = sys.argv[0:]
 	if len(args) == 2:
 		k = 10
@@ -20,12 +19,6 @@ def bm_25():
 	else:
 		shared.error("11", ["bm25", ""])
 		return -1
-=======
-	if len(sys.argv) < 2:
-		shared.error("11", ["bm25", ""])
-		return -1
-	q = sys.argv[1:]
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	try:
 		texts, documents = shared.build_texts("bm25")
 	except:
@@ -37,11 +30,7 @@ def bm_25():
 		shared.error("1", ["bm25", " ".join(q)])
 		return -1
 	try:
-<<<<<<< HEAD
 		write_to_file(scores, documents, q, k)
-=======
-		write_to_file(scores, documents, q)
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	except:
 		shared.error("8", ["bm25", " ".join(q)])
 	try:
@@ -51,10 +40,6 @@ def bm_25():
 		return -1
 	return 1
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 """
 Use the gensim library to score the query using the BM25 model.
 https://stackoverflow.com/questions/40966014/how-to-use-gensim-bm25-ranking-in-python
@@ -81,11 +66,7 @@ return:
 TODO: include all document scores? scores over a certain threshold? top n 
 documents?
 """
-<<<<<<< HEAD
 def write_to_file(scores, docs, q, k):
-=======
-def write_to_file(scores, docs, q):
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	if not os.path.exists(BM25FOLDER):
 		os.makedirs(BM25FOLDER)
 	bm25_file = open(BM25FOLDER+"bm25.csv", "a+")
@@ -97,11 +78,7 @@ def write_to_file(scores, docs, q):
 	for i in range(0, len(scores)):
 		scores[i] = (scores[i], docs[i])
 	scores = sorted(scores, key=lambda tup:tup[0], reverse=True)
-<<<<<<< HEAD
 	for i in range(0, min(k, len(scores))):
-=======
-	for i in range(0, len(scores)):
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 		output+=scores[i][1]+", "+str(scores[i][0])+"\n"
 	bm25_file.write(output)
 	bm25_file.close()
