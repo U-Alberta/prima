@@ -20,7 +20,6 @@ def lsi():
 	except:
 		shared.error("0", ["lsi", k])
 		return -1
-<<<<<<< HEAD
 	try:
 	   ck = get_lsi(texts, k)
 	except:
@@ -36,23 +35,6 @@ def lsi():
 	except:
 		shared.error("10", ["lsi", k])
 		return -1
-=======
-	#try:
-	ck = get_lsi(texts, k)
-	#except:
-		#shared.error("4", ["lsi", k])
-		#return -1
-	#try:
-	#shared.write_to_file(ck, documents, LSIFOLDER, "lsi.csv")
-	#except:
-		#shared.error("8", ["lsi", k])
-		#return -1
-	#try:
-		#shared.insert_to_db("lsi", k, "Finished")
-	#except:
-		#shared.error("10", ["lsi", k])
-		#return -1
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	return 1
 
 """
