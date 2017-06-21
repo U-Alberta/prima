@@ -9,7 +9,6 @@ KMEANSFOLDER = "processed/k_means/"
 IIDB = "processed/inverted_index.db"
 
 def k_means_clusterer():
-<<<<<<< HEAD
 	if len(sys.argv) in [1, 2]:
 		k = 3 # Default number of clusters is 3
 		if len(sys.argv) == 2:
@@ -25,55 +24,23 @@ def k_means_clusterer():
 	else:
 		shared.error("11", ["k_means_clusterer", ""])
 		return -1
-=======
-	if len(sys.argv) == 1:
-		k = 3 # Default number of clusters is 3
-	elif len(sys.argv) == 2:
-		k = sys.argv[1]
-		k = int(k)
-	else:
-		shared.error("11", ["k_means_clusterer", ""])
-		return -1
-	"""
-	Do we want to let users specify seeds?
-	"""
-	"""
-	if len(sys.argv) > 3:
-		seeds = sys.argv[3:]
-		if len(seeds) != k:
-			print("Number of clusters doesn't match number of seeds given")
-			return -1
-	else: 
-	"""
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	try:
 		texts, documents = shared.build_texts("k_means_clusterer")
 	except:
 		shared.error("0", ["k_means_clusterer", ""])
 		return -1
-<<<<<<< HEAD
 	if len(sys.argv) in [1,2]:
 		try:
 			seeds = gen_seeds(k, documents)
 		except:
 			shared.error("5", ["k_means_clusterer", k], "random seed documents")
 			return -1
-=======
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 	try:
 		tfidf, raw_tf, dictionary = shared.get_tfidf(texts)
 	except:
 		shared.error("1", ["k_means_clusterer", ""])
 		return -1
 	try:
-<<<<<<< HEAD
-=======
-		seeds = gen_seeds(k, documents)
-	except:
-		shared.error("5", ["k_means_clusterer", k], "random seed documents")
-		return -1
-	try:
->>>>>>> 15d648cbfdb5aec698ff3667d6e94a5147f5613a
 		inverted_index = build_inverted_index(tfidf, raw_tf, dictionary, documents)
 	except:
 		shared.error("5", ["k_means_clusterer", k], "inverted_index")
