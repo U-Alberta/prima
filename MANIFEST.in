@@ -1,4 +1,8 @@
 include LICENSE
 include README.md
 include src/*
+include src/processed/*
+include src/processed/min_hash/*
+include src/source/folder/*
+include src/testing/*
 include tools/*

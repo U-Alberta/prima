@@ -10,9 +10,9 @@ For each document save a unique id, all the shingles, and all the initial hash
 values for each shingle.
 */
 typedef struct {
-  char* docid;
-  char** shingles;
-  int* hash;
+    char* docid;
+    char** shingles;
+    int* hash;
 }DocShingles;
 
 /*
@@ -20,8 +20,8 @@ For each document save the corresponding unique id (from DocShingles) and for
 each of the HASHVALUES hash functions save the smallest hash value.
 */
 typedef struct {
-  char* docid;
-  int* minHashes;
+    char* docid;
+    int* minHashes;
 } MinHash;
 
 char* db_name = "processed/shingles.db";

@@ -1,6 +1,6 @@
 #!/bin/sh
 my_date() {
-	date "+%Y-%m-%d %T.%N"
+    date "+%Y-%m-%d %T.%N"
 }
 
 echo "Please note only .txt and .pdf file types can be analysed by tools, \
