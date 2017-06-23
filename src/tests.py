@@ -158,6 +158,10 @@ class TestMinHash(unittest.TestCase):
         self.assertTrue(os.path.getsize('processed/shingles.db') > 0)
         os.remove('processed/shingles.db')
 
+    def test_min_hash(self):
+      min_hash.min_hash()
+      self.assertTrue(os.path.getsize('processed/min_hash/min_hash.csv') > 0)
+
 class TestMinHashSimilarity(unittest.TestCase):
 
     def setUp(self):

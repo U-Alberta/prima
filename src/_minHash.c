@@ -1,113 +1,113 @@
 #include "minHash.h"
 
 int main() {
-        printf("main function\n");
-        return 1;
+    printf("main function\n");
+    return 1;
 }
 
 static char minHash_docstring[] = "A quick minimum hashing function.";
 
 static PyMethodDef module_methods[] = {
-        {"minHash", minHash_minHash, METH_VARARGS, minHash_docstring},
-        {NULL, NULL, 0, NULL}
+    {"minHash", minHash_minHash, METH_VARARGS, minHash_docstring},
+    {NULL, NULL, 0, NULL}
 };
 
 void init_minHash(void) {
-        Py_InitModule3("_minHash", module_methods, minHash_docstring);
+    Py_InitModule3("_minHash", module_methods, minHash_docstring);
 }
 
 static PyObject *minHash_minHash(PyObject *self, PyObject *args) {
-        sqlite3 *db;
-        sqlite3_stmt *stmt;
-        int rc=0, shingleLenSum=0, hashvalues=0;
-        DocShingles *s;
-        MinHash *h;
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    int rc=0, shingleLenSum=0, hashvalues=0;
+    DocShingles *s;
+    MinHash *h;
 
-        if (!PyArg_ParseTuple(args, "i", &hashvalues))
-                return NULL;
+    if (!PyArg_ParseTuple(args, "i", &hashvalues))
+        return NULL;
 
-        int *hashNums = genRandom(hashvalues);
-        rc = sqlite3_open(db_name, &db);
-        if (rc) {
-                fprintf(stderr, "Error opening database %s\n", sqlite3_errmsg(db));
-                sqlite3_close(db);
-                Py_RETURN_NONE;
-        }
-        /*
-        The results of first two SQL statements are used to malloc s and h below.
-        */
-        int documentCount = sqlStmtOne(rc, db, stmt);
-        if (documentCount == 0) {
-                Py_RETURN_NONE;
-        }
-        int *shingleLengths = (int*) malloc(sizeof(int)*documentCount);
-        for (int i=0; i<documentCount; ++i) {
-                shingleLengths[i] = 0;
-        }
-        shingleLengths = sqlStmtTwo(documentCount, shingleLengths, rc, db, stmt);
-        if (shingleLengths[0] == 0) {
-                Py_RETURN_NONE;
-        }
-        for (int i=0; i<documentCount; ++i) {
-                shingleLenSum+=shingleLengths[i];
-        }
-        /*
-        Initialize the sizes of s and h for the number of documents and shingles. 
-        hashNums generates hashvalues random numbers.
-        */
-        s = (DocShingles*) malloc((sizeof(DocShingles)*documentCount)\
-                +(sizeof(char*)*shingleLenSum));
-        h = (MinHash*) malloc((sizeof(MinHash)*documentCount)\
-                +(sizeof(int)*shingleLenSum));
-        /*
-        The last two SQL statements populate s and h.
-        */
-        s = sqlStmtThree(documentCount, s, rc, db, stmt);
-        if (s[0].docid == NULL) {
-                Py_RETURN_NONE;
-        }
-        s = sqlStmtFour(documentCount, s, rc, db, stmt);
-        if (s[0].docid == NULL) {
-                Py_RETURN_NONE;
-        }
+    int *hashNums = genRandom(hashvalues);
+    rc = sqlite3_open(db_name, &db);
+    if (rc) {
+        fprintf(stderr, "Error opening database %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
-
-        /*
-        Loop through shingles in every document calculating initial hash values.
-        */
-        for (int i=0; i<documentCount; ++i) {
-                s[i].hash = (int*) malloc(sizeof(int*)  *shingleLengths[i]);
-                for (int j=0; j<shingleLengths[i]; ++j) {
-                        s[i].hash[j] = hash(s[i].shingles[j]);
-                }
-        }
-
-        /*
-        getMinHash calculates the new hash values and saves the minimum of each hash 
-        value for each function and document.
-        */
-        h = getMinHash(s, h, hashNums, shingleLengths, documentCount, hashvalues);
-
-        /*
-        printToCSV saves all the documents and their corresponding minHash values to 
-        a csv file in the processed/min_hash directory. Finally free all malloc'd
-        memory.
-        */
-        printToCSV(h, documentCount, hashvalues);
-        freeEverything(hashNums, s, h, shingleLengths, documentCount);
         Py_RETURN_NONE;
+    }
+    /*
+    The results of first two SQL statements are used to malloc s and h below.
+    */
+    int documentCount = sqlStmtOne(rc, db, stmt);
+    if (documentCount == 0) {
+        Py_RETURN_NONE;
+    }
+    int *shingleLengths = (int*) malloc(sizeof(int)*documentCount);
+    for (int i=0; i<documentCount; ++i) {
+        shingleLengths[i] = 0;
+    }
+    shingleLengths = sqlStmtTwo(documentCount, shingleLengths, rc, db, stmt);
+    if (shingleLengths[0] == 0) {
+        Py_RETURN_NONE;
+    }
+    for (int i=0; i<documentCount; ++i) {
+        shingleLenSum+=shingleLengths[i];
+    }
+    /*
+    Initialize the sizes of s and h for the number of documents and shingles. 
+    hashNums generates hashvalues random numbers.
+    */
+    s = (DocShingles*) malloc((sizeof(DocShingles)*documentCount)\
+        +(sizeof(char*)*shingleLenSum));
+    h = (MinHash*) malloc((sizeof(MinHash)*documentCount)\
+        +(sizeof(int)*shingleLenSum));
+    /*
+    The last two SQL statements populate s and h.
+    */
+    s = sqlStmtThree(documentCount, s, rc, db, stmt);
+    if (s[0].docid == NULL) {
+        Py_RETURN_NONE;
+    }
+    s = sqlStmtFour(documentCount, s, rc, db, stmt);
+    if (s[0].docid == NULL) {
+        Py_RETURN_NONE;
+    }
+    sqlite3_close(db);
+
+    /*
+    Loop through shingles in every document calculating initial hash values.
+    */
+    for (int i=0; i<documentCount; ++i) {
+        s[i].hash = (int*) malloc(sizeof(int*)  *shingleLengths[i]);
+        for (int j=0; j<shingleLengths[i]; ++j) {
+            s[i].hash[j] = hash(s[i].shingles[j]);
+        }
+    }
+
+    /*
+    getMinHash calculates the new hash values and saves the minimum of each hash 
+    value for each function and document.
+    */
+    h = getMinHash(s, h, hashNums, shingleLengths, documentCount, hashvalues);
+
+    /*
+    printToCSV saves all the documents and their corresponding minHash values to 
+    a csv file in the processed/min_hash directory. Finally free all malloc'd
+    memory.
+    */
+    printToCSV(h, documentCount, hashvalues);
+    freeEverything(hashNums, s, h, shingleLengths, documentCount);
+    Py_RETURN_NONE;
 }
 
 /*
 Generate hashvalues random numbers to be used as hash functions later.
 */
 int *genRandom(int hashvalues) {
-        int *hashNums = malloc(sizeof(int)*hashvalues);
-        for (int i=0; i<hashvalues; ++i) {
-        int r = rand();
-                hashNums[i] = r;
-        }
-        return hashNums;
+    int *hashNums = malloc(sizeof(int)*hashvalues);
+    for (int i=0; i<hashvalues; ++i) {
+    int r = rand();
+        hashNums[i] = r;
+    }
+    return hashNums;
 }
 
 /*
