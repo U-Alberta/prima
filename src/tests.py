@@ -143,8 +143,8 @@ class TestLDA(unittest.TestCase):
                  ['this','is','a','sample']]
         ck = lda.get_lda(texts, 2)
         self.assertEqual(len(ck), 2)
-        self.assertEqual(len(ck[0]), 3)
-        self.assertEqual(len(ck[1]), 3)
+        self.assertEqual(len(ck[0]), 2)
+        self.assertEqual(len(ck[1]), 2)
 
 class TestMinHash(unittest.TestCase):
 

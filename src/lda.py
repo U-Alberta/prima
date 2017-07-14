@@ -24,7 +24,8 @@ def lda():
         shared.error("4", ["lda", k])
         return -1
     try:
-        shared.write_to_file(ck, documents, LDAFOLDER, "lda.csv")
+        cols = range(0, k)
+        shared.write_to_file(ck, cols, LDAFOLDER, "lda.csv")
     except:
         shared.error("8", ["lda", k])
         return -1
@@ -44,14 +45,13 @@ return: ck (lda reduced matrix)
 def get_lda(texts, k):
     dictionary = corpora.Dictionary(texts)
     corpus = [dictionary.doc2bow(text) for text in texts]
-    lda = models.LdaModel(corpus, id2word=dictionary, num_topics=k)
-    corpus_lda = lda[corpus]
+    lda = models.LdaModel(corpus=corpus, id2word=dictionary, num_topics=k)
     ck = []
-    for i in range(0, len(corpus_lda[0])):
+    for i in range(0, k):
         ck.append([])
-    for row in corpus_lda:
-        for i in range(0, len(row)):
-            ck[i].append(row[i][1])
+    for i in range(0, lda.num_topics):
+        topic = lda.print_topic(i, topn=k).split(" + ")
+        [ck[i].append(word) for word in topic] 
     return ck
 
 if __name__ == '__main__':

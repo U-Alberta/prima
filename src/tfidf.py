@@ -84,6 +84,7 @@ def write_to_files(tfidf, raw_tf, dictionary, documents):
         if data[docid] == {"tf-idf":{}, "tf":{}}:
             del data[docid]
         i+=1
+        df_line = ""
     for term in raw_df.keys():
         df = raw_df[term][0]
         token_id = raw_df[term][1]

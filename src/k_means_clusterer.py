@@ -24,10 +24,7 @@ def k_means_clusterer():
         shared.error("11", ["k_means_clusterer", ""])
         return -1
     try:
-        #texts, documents = shared.build_texts("k_means_clusterer")
-        texts = [['sample','document','for','testing'],['testing','query',\
-                  'document'],['this','is','a','sample']]
-        documents = ['d0','d1','d2']
+        texts, documents = shared.build_texts("k_means_clusterer")
     except:
         shared.error("0", ["k_means_clusterer", ""])
         return -1
@@ -48,7 +45,6 @@ def k_means_clusterer():
         shared.error("5", ["k_means_clusterer", k], "inverted_index")
         return -1	
     try:
-        seeds = ['d1', 'd2']
         centroids = get_seed_vector(seeds, inverted_index, dictionary, documents)
     except:
         shared.error("5", ["k_means_clusterer", k], "centroids")

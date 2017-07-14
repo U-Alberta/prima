@@ -59,17 +59,20 @@ def build_texts(mode, k=0):
                 doc_text = []
                 if mode == "min_hash": shingle = prep_shingle(k)
                 for line in doc:
-                    sentence_list = sent_tokenize(line.decode("utf-8"))
-                    for sentence in sentence_list:
-                        for term in word_tokenize(sentence):
-                            if term[0] not in PUNC.keys():
-                                try:
-                                    term = str(term.lower())
-                                    if mode == "min_hash":
-                                        shingle, s = min_hash_subfxn(doccounter, s, shingle, term, k)
-                                    doc_text.append(term)
-                                except:
-                                    pass
+                    try:
+                        sentence_list = sent_tokenize(line.decode("utf-8"))
+                        for sentence in sentence_list:
+                            for term in word_tokenize(sentence):
+                                if term[0] not in PUNC.keys():
+                                    try:
+                                        term = str(term.lower())
+                                        if mode == "min_hash":
+                                            shingle, s = min_hash_subfxn(doccounter, s, shingle, term, k)
+                                        doc_text.append(term)
+                                    except:
+                                        pass
+                    except:
+                        pass
                 texts.append(doc_text)
             except:
                 print("Warning: couldn't open document {}".format(docid))
