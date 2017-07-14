@@ -2,8 +2,11 @@
 Personal Research Management for the IA
 
 ## Installation
+**Note:** This project uses [gensim](https://radimrehurek.com/gensim/install.html), [nltk tokenizer](http://www.nltk.org/install.html), [pandas](https://pypi.python.org/pypi/pandas/#downloads), and [pdfminer](https://pypi.python.org/pypi/pdfminer/) in addition to the [internetarchive python library](https://internetarchive.readthedocs.io/en/latest/installation.html) for some of the tools and runs with [python 2.7](https://www.python.org/downloads/) and c. You will need to download them by following the instructions on the websites.  
+
+
 1. Clone this repository to somewhere in your file system.
-2. To install the tool, first [download SQLite](https://sqlite.org/download.html) and place the files titled sqlite3.c and sqlite3.h in the prima/src directory. Then run
+2. To install the tool, first [download SQLite](https://sqlite.org/download.html) and _place the files titled sqlite3.c and sqlite3.h in the prima/src directory_. Then run
 
         $ sudo python setup.py install
 3. To create the appropriate directories for your file system run the following commands where **project_name** is the desired file name for a collection to be saved in
